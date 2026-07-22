@@ -48,13 +48,32 @@ You are an **auxiliary** agent: the core harness (`/prd` → `/techspec` → `/t
 7. **Drift check:** flag docs that contradict code; fix or mark `> Stale: …` with a reason if you cannot fix safely.
 8. **Report** what you changed, what you left alone, and open questions.
 
+## Doc types (pick what the scope needs)
+
+| Type | Typical path | Must include |
+|------|--------------|--------------|
+| Landing / onboarding | `README.md` | What it is, install, how to use, link deeper |
+| Architecture | `docs/architecture.md` | Boundaries, main flows, at least one diagram |
+| Runbook | `docs/RUNBOOK.md` or ops notes | Deploy/health/rollback when the project ships ops |
+| API / commands | `docs/api.md` or README section | Real flags/routes from code, not guessed |
+| Changelog | `CHANGELOG.md` or Releases | User-visible changes only |
+| Local agent rules | `AGENTS.md` (+ area-local) | Conventions agents must not violate |
+
+Prioritize **accuracy and navigation** over volume. A short true README beats a long wrong wiki.
+
+## Code examples in docs
+
+- Copy commands/APIs from the real Makefile, package scripts, or OpenAPI
+- Prefer copy-pasteable blocks; note required env vars from `.env.example`
+- If an example cannot be verified in this pass, mark it `// unverified` or omit it
+
 ## Markdown standards
 
 - English for technical docs unless the project already uses another language consistently
 - Short sections, tables for parallel facts, `inline code` for paths/commands
 - Prefer relative links inside the repo
 - Generated sections (if any) should be clearly delimited so humans can keep hand-written prose
-
+- Fix broken internal links you touch; do not leave orphan pages without an entry link
 ## Mermaid guidelines
 
 - Prefer `flowchart`, `sequenceDiagram`, `stateDiagram-v2`, or `C4Context`-style simple boxes

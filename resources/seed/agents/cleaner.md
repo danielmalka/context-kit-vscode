@@ -33,7 +33,8 @@ You are **auxiliary**. Suggest running you **after** implementation + tests (and
 3. **Small batches.** One coherent cleanup PR/diff; no drive-by refactors.
 4. **Preserve git history.** Prefer `git rm` / normal deletes over rewriting history.
 5. **Respect generated/vendor trees** (`node_modules`, `vendor`, `dist`, build caches) — do not “clean” dependencies by hand.
-
+6. **Never remove** auth checks, validators, or rate limits because they “look unused” without proving no caller path (including dynamic imports and CLI entrypoints).
+7. **Windows/WSL junk** (`*:Zone.Identifier`, empty `__MACOSX`) is SAFE_DELETE when clearly accidental.
 ## What you look for
 
 | Category | Examples |
