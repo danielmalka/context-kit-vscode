@@ -9,11 +9,11 @@ STRICT_TEST_CMD ?= node --import tsx --test tests/unit/*.test.ts
 
 fmt:
 	@npx --no-install prettier --version >/dev/null 2>&1 || { echo "prettier not installed. Install: npm install --save-dev prettier"; exit 1; }
-	npx prettier --write "src/**/*.ts" "tests/**/*.ts" "*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
+	npx prettier --write "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
 
 fmt-check:
 	@npx --no-install prettier --version >/dev/null 2>&1 || { echo "prettier not installed. Install: npm install --save-dev prettier"; exit 1; }
-	npx prettier --check "src/**/*.ts" "tests/**/*.ts" "*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
+	npx prettier --check "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
 
 lint:
 	@npx --no-install eslint --version >/dev/null 2>&1 || { echo "eslint not installed. Install: npm install --save-dev eslint typescript-eslint @eslint/js"; exit 1; }
