@@ -6,6 +6,12 @@ import { ALL_PROVIDERS, SUPPORTED_LANGS } from "./domain/types";
 import { assetRelativePath } from "./domain/paths";
 import { isValidSlug, validateSkillMeta } from "./domain/validate";
 import { ensureLibraryFromSeed, writeUserAssetMeta } from "./library/ensure";
+import {
+  applyCleanLibraryUpdate,
+  applyLibraryUpdate,
+  planLibraryUpdate,
+  type DirtyResolution,
+} from "./library/seedUpdate";
 import { scanAll } from "./library/scan";
 import { factoryDefaultProfile, enabledProviders } from "./profile/defaults";
 import { detectLanguageHints } from "./profile/detectLang";
@@ -58,6 +64,7 @@ export function activate(context: vscode.ExtensionContext): void {
     ["contextKit.applyHarness", () => runApplyHarness(context)],
     ["contextKit.showLibraryPath", () => showLibraryPath()],
     ["contextKit.reseedFromPackage", () => reseed(context)],
+    ["contextKit.updateLibrary", () => updateLibrary(context)],
   ];
   for (const [id, fn] of cmds) {
     context.subscriptions.push(vscode.commands.registerCommand(id, fn));
@@ -131,12 +138,79 @@ async function reseed(context: vscode.ExtensionContext): Promise<void> {
     "Reseed",
   );
   if (ok !== "Reseed") return;
-  ensureLibraryFromSeed(libraryRoot, seedRoot, { forceReseedClean: false });
-  // force refresh of clean only is default; for full seed re-copy of clean:
-  ensureLibraryFromSeed(libraryRoot, seedRoot);
-  // re-read library.json update via install path — call with force only cleans via dirty check
+  const result = applyCleanLibraryUpdate(libraryRoot, seedRoot);
+  log(
+    `Reseed applied=${result.applied.length} dirtyLeft=${result.dirty.length} seed=${result.packageSeedVersion}`,
+  );
   await scanAndRefresh();
-  vscode.window.showInformationMessage("Context Kit: library reseeded from package seed.");
+  vscode.window.showInformationMessage(
+    `Context Kit: reseeded clean assets (${result.applied.length} written, ${result.dirty.length} dirty skipped).`,
+  );
+  void context;
+}
+
+async function updateLibrary(context: vscode.ExtensionContext): Promise<void> {
+  if (!fs.existsSync(path.join(seedRoot, "seed.json"))) {
+    vscode.window.showErrorMessage("Context Kit: package seed missing.");
+    return;
+  }
+  const plan = planLibraryUpdate(libraryRoot, seedRoot);
+  log(
+    `Update plan: package=${plan.packageSeedVersion} library=${plan.librarySeedVersion ?? "none"} ` +
+      `missing=${plan.missing.length} clean=${plan.clean.length} dirty=${plan.dirty.length} user=${plan.userOwned.length}`,
+  );
+
+  if (!plan.needsUpdate && plan.dirty.length === 0) {
+    vscode.window.showInformationMessage(
+      `Context Kit: library already at seed ${plan.packageSeedVersion}.`,
+    );
+    return;
+  }
+
+  const dirtyResolutions: Record<string, DirtyResolution> = {};
+  for (const d of plan.dirty) {
+    const pick = await vscode.window.showQuickPick(
+      [
+        {
+          label: "Skip",
+          description: "Keep my edited file",
+          resolution: "skip" as DirtyResolution,
+        },
+        {
+          label: "Replace",
+          description: "Overwrite with package seed",
+          resolution: "replace" as DirtyResolution,
+        },
+        {
+          label: "Keep both",
+          description: "Backup as *.user.* then install seed",
+          resolution: "keep-both" as DirtyResolution,
+        },
+      ],
+      {
+        title: `Dirty seed asset: ${d.name}`,
+        placeHolder: d.libraryRel,
+        ignoreFocusOut: true,
+      },
+    );
+    if (!pick) {
+      dirtyResolutions[d.name] = "skip";
+      continue;
+    }
+    dirtyResolutions[d.name] = pick.resolution;
+  }
+
+  const result = applyLibraryUpdate(libraryRoot, seedRoot, dirtyResolutions);
+  getOutput().show(true);
+  log(
+    `Update done: applied=${result.applied.length} replaced=${result.replaced.length} ` +
+      `keptBoth=${result.keptBoth.length} skippedDirty=${result.skippedDirty.length} ` +
+      `librarySeedVersion=${result.librarySeedVersion}`,
+  );
+  await scanAndRefresh();
+  vscode.window.showInformationMessage(
+    `Context Kit: library update finished (seed ${result.librarySeedVersion}). See Output for details.`,
+  );
   void context;
 }
 
