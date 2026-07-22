@@ -4,6 +4,7 @@ import * as os from "node:os";
 import * as fs from "node:fs";
 import { scanAllSessions } from "../observe/scanSessions";
 import { sessionsFingerprint } from "../observe/fingerprint";
+import { filterSessionsForDisplay } from "../observe/filterSessions";
 import type { ActivitySession } from "../observe/types";
 import { escapeHtml, webviewBaseStyles } from "./webviewTheme";
 
@@ -15,8 +16,17 @@ function formatAge(ms: number, now: number): string {
   return `${Math.floor(sec / 86400)}d ago`;
 }
 
-function renderSessions(sessions: ActivitySession[], now: number): string {
+function renderSessions(
+  sessions: ActivitySession[],
+  now: number,
+  onlyActive: boolean,
+  hiddenCount: number,
+): string {
   if (!sessions.length) {
+    if (onlyActive && hiddenCount > 0) {
+      return `<div class="empty">No <strong>active</strong> sessions right now.<br/>
+        <span class="meta">${hiddenCount} inactive hidden — use “Show inactive” to list them.</span></div>`;
+    }
     return `<div class="empty">No Claude/Grok sessions found under default homes.<br/>
       <span class="meta">Checked ~/.claude/projects and ~/.grok/sessions</span></div>`;
   }
@@ -52,7 +62,10 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
     { enableScripts: true, retainContextWhenHidden: true },
   );
 
+  /** Live tail (auto re-scan). */
   let live = true;
+  /** Hide idle/done sessions by default. */
+  let onlyActive = true;
   let lastFp = "";
   let pollTimer: ReturnType<typeof setInterval> | undefined;
   const watchers: fs.FSWatcher[] = [];
@@ -63,19 +76,29 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
 
   const paint = (force = false) => {
     const now = Date.now();
-    const sessions = scanAllSessions({
+    const all = scanAllSessions({
       grokSessionsRoot: grokRoot,
       claudeProjectsRoot: claudeRoot,
       nowMs: now,
-      limit: 50,
+      limit: 80,
     });
-    const fp = sessionsFingerprint(sessions);
+    const fp = sessionsFingerprint(all) + `|oa:${onlyActive}`;
     if (!force && fp === lastFp) {
-      panel.webview.postMessage({ type: "tick", at: now, count: sessions.length, live });
+      const { visible, hiddenCount } = filterSessionsForDisplay(all, onlyActive);
+      panel.webview.postMessage({
+        type: "tick",
+        at: now,
+        count: visible.length,
+        total: all.length,
+        hidden: hiddenCount,
+        live,
+        onlyActive,
+      });
       return;
     }
     lastFp = fp;
-    panel.webview.html = buildHtml(sessions, now, live);
+    const { visible, hiddenCount } = filterSessionsForDisplay(all, onlyActive);
+    panel.webview.html = buildHtml(visible, now, live, onlyActive, all.length, hiddenCount);
   };
 
   const debounced = debounce(() => paint(false), 400);
@@ -125,6 +148,10 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
         else stopWatch();
         paint(true);
       }
+      if (msg?.type === "onlyActive") {
+        onlyActive = !!msg.value;
+        paint(true);
+      }
     },
     undefined,
     context.subscriptions,
@@ -143,7 +170,19 @@ function debounce(fn: () => void, ms: number): () => void {
   };
 }
 
-function buildHtml(sessions: ActivitySession[], now: number, live: boolean): string {
+function buildHtml(
+  sessions: ActivitySession[],
+  now: number,
+  live: boolean,
+  onlyActive: boolean,
+  total: number,
+  hiddenCount: number,
+): string {
+  const meta =
+    onlyActive && hiddenCount > 0
+      ? `${sessions.length} active · ${hiddenCount} inactive hidden · ${new Date(now).toLocaleString()}`
+      : `${total} session(s) · ${new Date(now).toLocaleString()}`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -160,30 +199,45 @@ function buildHtml(sessions: ActivitySession[], now: number, live: boolean): str
 <body>
   <h1>Agent activity</h1>
   <p class="sub">Radar of Claude Code and Grok sessions (read-only).
-    <strong>Live tail</strong> re-scans when session files change (and every 3s).</p>
+    By default only <strong>active</strong> (recently busy) sessions are listed.
+    <strong>Live tail</strong> re-scans when files change (and every 3s).</p>
   <div class="row">
     <button id="refresh">Refresh now</button>
     <button id="live" class="secondary">
       <span class="live-dot ${live ? "on" : ""}" id="livedot"></span>
       Live: <span id="livelabel">${live ? "ON" : "OFF"}</span>
     </button>
-    <span class="meta" id="meta">${sessions.length} session(s) · ${new Date(now).toLocaleString()}</span>
+    <button id="filter" class="secondary">
+      ${onlyActive ? "Show inactive" : "Hide inactive"}
+    </button>
+    <span class="meta" id="meta">${escapeHtml(meta)}</span>
   </div>
-  <div id="list">${renderSessions(sessions, now)}</div>
+  <div id="list">${renderSessions(sessions, now, onlyActive, hiddenCount)}</div>
   <script>
     const vscode = acquireVsCodeApi();
     let live = ${live ? "true" : "false"};
+    let onlyActive = ${onlyActive ? "true" : "false"};
     document.getElementById('refresh').addEventListener('click', () => vscode.postMessage({ type: 'refresh' }));
     document.getElementById('live').addEventListener('click', () => {
       live = !live;
       vscode.postMessage({ type: 'live', value: live });
     });
+    document.getElementById('filter').addEventListener('click', () => {
+      onlyActive = !onlyActive;
+      vscode.postMessage({ type: 'onlyActive', value: onlyActive });
+    });
     window.addEventListener('message', (e) => {
       const m = e.data;
       if (m && m.type === 'tick') {
         const el = document.getElementById('meta');
-        if (el) el.textContent = m.count + ' session(s) · ' + new Date(m.at).toLocaleString()
-          + (m.live ? ' · live' : '');
+        if (!el) return;
+        if (m.onlyActive && m.hidden > 0) {
+          el.textContent = m.count + ' active · ' + m.hidden + ' inactive hidden · '
+            + new Date(m.at).toLocaleString() + (m.live ? ' · live' : '');
+        } else {
+          el.textContent = m.total + ' session(s) · ' + new Date(m.at).toLocaleString()
+            + (m.live ? ' · live' : '');
+        }
       }
     });
   </script>

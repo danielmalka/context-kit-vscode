@@ -8,9 +8,9 @@
       "claude": true,
       "grok": true,
       "agents": true,
-      "codex": true,
-      "gemini": true,
-      "devin": true
+      "codex": false,
+      "gemini": false,
+      "devin": false
     },
     "options": {
       "installPreCommit": true,
@@ -20,7 +20,6 @@
       "refreshMode": "skip-existing"
     }
   },
-  "appliedAt": "2026-07-21T23:52:00.000Z",
-  "extensionVersion": "bootstrap-cli",
-  "notes": "Bootstrapped via context-kit bin/bootstrap.sh for dogfooding. Providers may be thinned later via Context Kit: Apply Harness."
+  "appliedAt": "2026-07-22T12:19:38.074Z",
+  "extensionVersion": "1.2.0"
 }

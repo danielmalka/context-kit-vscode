@@ -10,6 +10,12 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
+## 1.3.0
+
+### Features
+
+- **Activity map:** hide inactive sessions by default; toggle **Show inactive** / **Hide inactive**
+
 ## 1.2.0
 
 ### Features
