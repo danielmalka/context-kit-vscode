@@ -4,11 +4,17 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 ## Versioning
 
-- **MAJOR** — breaking changes for extension users  
-- **MINOR** — new features, backward compatible  
-- **PATCH** — fixes / docs / packaging only  
+- **MAJOR** — breaking changes for extension users
+- **MINOR** — new features, backward compatible
+- **PATCH** — fixes / docs / packaging only
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
+
+## 1.1.0
+
+### Features
+
+- **Activity map live tail (M2):** fs.watch + 3s poll, Live ON/OFF, fingerprint skip for unchanged UI
 
 ## 1.0.0
 
