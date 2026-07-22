@@ -5,6 +5,14 @@
   "version": "0.1.0",
   "publisher": "danielmalka",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielmalka/context-kit-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/danielmalka/context-kit-vscode/issues"
+  },
+  "homepage": "https://github.com/danielmalka/context-kit-vscode#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -141,13 +149,15 @@
     "type-check": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "check": "make check",
-    "package": "npm run sync-seed && npm run compile && npx @vscode/vsce package --no-dependencies",
+    "package": "npm run compile && npx --yes @vscode/vsce package --no-dependencies",
+    "package:reseed": "npm run sync-seed && npm run package",
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
     "esbuild": "^0.25.0",
     "eslint": "^9.18.0",
     "prettier": "^3.4.0",

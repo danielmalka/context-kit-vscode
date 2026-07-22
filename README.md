@@ -143,9 +143,14 @@ npm run compile     # esbuild → dist/extension.js
 - Package a VSIX (`resources/seed/` is already in the repo; `sync-seed` is optional for maintainers):
 
 ```bash
+npm install
 npm run compile
 npm run package
+# → creates context-kit-0.1.0.vsix in the repo root
 # Then: Command Palette → "Extensions: Install from VSIX…"
+#
+# Optional (maintainers with a local asset-kit clone):
+# npm run package:reseed
 ```
 
 ### Quality gate

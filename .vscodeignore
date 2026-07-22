@@ -1,3 +1,4 @@
+# Dev / tooling
 .vscode/**
 .vscode-test/**
 src/**
@@ -9,4 +10,23 @@ node_modules/**
 esbuild.mjs
 tsconfig.json
 .gitignore
+.prettierignore
+.prettierrc.json
+eslint.config.mjs
+Makefile
+AGENTS.md
 **/.git/**
+
+# Local dogfood harness (must not ship in VSIX)
+.harness/**
+.claude/**
+.agents/**
+.codex/**
+.devin/**
+.gemini/**
+.grok/**
+.context-kit/**
+
+# Build junk
+*.vsix
+out/**
