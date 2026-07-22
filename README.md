@@ -49,6 +49,38 @@ Install from a **VSIX** (Marketplace publication is not available yet):
 
 Typical defaults: **Claude + Grok + agents** enabled; other providers off until you opt in.
 
+## How to use
+
+### Day-to-day with the extension
+
+1. **Browse** skills, commands, and agents in the **Context Kit** sidebar (library + workspace `.harness`).
+2. **Create** assets with **New Skill**, **New Command**, or **New Workflow** (stored in your user library).
+3. **Apply** the harness to a repo when you want `.harness/`, provider glue, and `.context-kit/project.json`.
+4. **Update** the library when the extension ships a newer seed: **Update Library from Package Seed** (clean assets refresh automatically; edited seed assets get Skip / Replace / Keep-both).
+5. **Optional:** **Deploy Skill to User Runtime** if a tool only reads `~/.claude/skills` (or Grok / `.agents`).
+
+### Spec-driven development (in a harnessed project)
+
+With the harness applied, coding agents follow the portable playbooks under `.harness/`:
+
+| Route                                          | When                                    |
+| ---------------------------------------------- | --------------------------------------- |
+| `/prd` → `/techspec` → `/tasks` → `/implement` | Normal / complex features               |
+| `/fix`                                         | Bugs and small, well-scoped changes     |
+| `make check` / `make check-strict`             | Quality gate before calling work “done” |
+
+### Auxiliary agents (optional)
+
+Not part of the mandatory chain — use when useful:
+
+| Agent                   | Purpose                                                                           | How                                                    |
+| ----------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **documentator**        | Markdown docs + Mermaid/draw.io diagrams from code truth                          | Ask the agent to act as `documentator`, or `/document` |
+| **security-checker**    | Diff-scoped security review; tech-debt tasks for non-blockers                     | `/security-check` after implement on sensitive work    |
+| **cleaner** (faxineiro) | Dead code, stale docs, leftover samples — report first, delete only when approved | `/clean` at the end of a feature                       |
+
+Full inventory of seed content (skills, commands, agents, layout, porting notes): **[docs/context-kit-content.md](docs/context-kit-content.md)**.
+
 ## Commands
 
 | Command                                         | What it does                                                                              |
@@ -126,6 +158,15 @@ npm run package
 | `npm test`          | `node:test` suite under `tests/unit/`                                |
 
 Architecture rules for agents working on this repo live in `AGENTS.md`. CI runs `make check-strict` on pull requests and `main` via `.github/workflows/ci.yml`.
+
+## Documentation
+
+| Doc                                                        | Audience                                             |
+| ---------------------------------------------------------- | ---------------------------------------------------- |
+| [README.md](README.md) (this file)                         | Install, extension UI, develop, package              |
+| [docs/context-kit-content.md](docs/context-kit-content.md) | Seed content, harness flow, every agent/command role |
+| [AGENTS.md](AGENTS.md)                                     | Rules for agents working **on this extension repo**  |
+| `resources/seed/agents/*.md`                               | Role playbooks shipped to users                      |
 
 ## Related
 
