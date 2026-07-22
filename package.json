@@ -4,6 +4,7 @@
   "description": "Standalone library and harness for agent skills, commands, and multi-provider project setup.",
   "version": "0.1.0",
   "publisher": "danielmalka",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },

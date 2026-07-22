@@ -130,7 +130,7 @@ See GitHub [Releases](https://github.com/danielmalka/context-kit-vscode/releases
 
 ## License
 
-License to be decided. All rights reserved until a `LICENSE` file is added to the repository.
+This project is licensed under the [MIT License](LICENSE).
 
 ## Links
 
