@@ -33,19 +33,11 @@ It does **not** replace Claude Code, Grok, or other CLIs. Those remain the runti
 
 ## Install
 
-### From VSIX (current)
+Install from a **VSIX** (Marketplace publication is not available yet):
 
-Until the extension is published to the Marketplace:
-
-1. Download or build `context-kit-*.vsix` (see [Development](#development)).
+1. Build `context-kit-*.vsix` (see [Development](#development)), or download a release asset when one is published on this repo.
 2. In VS Code / Cursor: **Command Palette** → `Extensions: Install from VSIX…`
 3. Select the file and reload if prompted.
-
-### From Marketplace (planned)
-
-1. Open Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`).
-2. Search for **Context Kit**.
-3. Click **Install**.
 
 ## Quick start
 
@@ -72,10 +64,10 @@ Typical defaults: **Claude + Grok + agents** enabled; other providers off until 
 
 ## Settings
 
-| Setting                    | Type    | Default | Description                                                                                                               |
-| -------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `contextKit.kitPath`       | string  | `""`    | Optional path to a local [context-kit](https://github.com/danielmalka/context-kit) clone (maintainer reseed / power-user) |
-| `contextKit.scanOnStartup` | boolean | `true`  | Scan the user library when the extension activates                                                                        |
+| Setting                    | Type    | Default | Description                                                                                           |
+| -------------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `contextKit.kitPath`       | string  | `""`    | Optional absolute path to a local asset-kit clone used only by maintainers to reseed `resources/seed` |
+| `contextKit.scanOnStartup` | boolean | `true`  | Scan the user library when the extension activates                                                    |
 
 ## Requirements
 
@@ -103,8 +95,8 @@ git clone https://github.com/danielmalka/context-kit-vscode.git
 cd context-kit-vscode
 npm install
 
-# Optional: refresh bundled seed from a local context-kit clone
-# export CONTEXT_KIT_PATH=~/context-kit
+# Optional (maintainers): refresh bundled seed from a local asset-kit checkout
+# export CONTEXT_KIT_PATH=/path/to/local/asset-kit
 npm run sync-seed
 
 make check          # prettier + eslint + tsc + tests
@@ -130,11 +122,11 @@ Architecture rules for agents working on this repo live in `AGENTS.md`.
 
 ## Related
 
-- [context-kit](https://github.com/danielmalka/context-kit) — portable harness assets and bootstrap used as the seed factory for this extension
+The portable **asset kit** that supplies the bundled seed (skills, commands, agents, language packs, and bootstrap semantics) will be published as its own open repository soon. Until then, this extension already ships a frozen seed under `resources/seed/` — no external clone is required to build, install, or use the extension.
 
 ## Changelog
 
-See GitHub [Releases](https://github.com/danielmalka/context-kit-vscode/releases) (when published).
+See GitHub [Releases](https://github.com/danielmalka/context-kit-vscode/releases) when release notes are published.
 
 ## License
 
