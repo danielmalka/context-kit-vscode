@@ -17,8 +17,14 @@ import { factoryDefaultProfile, enabledProviders } from "./profile/defaults";
 import { detectLanguageHints } from "./profile/detectLang";
 import { parseProjectConfig, PROJECT_JSON_REL } from "./profile/projectJson";
 import { applyHarness } from "./publish/applyHarness";
+import {
+  defaultSkillRoots,
+  deployAssetToRuntime,
+  type RuntimeTarget,
+} from "./publish/deployRuntime";
 import { CatalogTreeProvider } from "./ui/treeProvider";
 import { getOutput, log } from "./output";
+import * as os from "node:os";
 
 let libraryRoot = "";
 let seedRoot = "";
@@ -65,6 +71,8 @@ export function activate(context: vscode.ExtensionContext): void {
     ["contextKit.showLibraryPath", () => showLibraryPath()],
     ["contextKit.reseedFromPackage", () => reseed(context)],
     ["contextKit.updateLibrary", () => updateLibrary(context)],
+    ["contextKit.deployToRuntime", () => deployToRuntime(context)],
+    ["contextKit.newWorkflow", () => newWorkflow(context)],
   ];
   for (const [id, fn] of cmds) {
     context.subscriptions.push(vscode.commands.registerCommand(id, fn));
@@ -300,6 +308,129 @@ async function newCommand(context: vscode.ExtensionContext): Promise<void> {
     scope: "library",
     frontmatter: {},
   });
+  void context;
+}
+
+async function newWorkflow(context: vscode.ExtensionContext): Promise<void> {
+  const name = await vscode.window.showInputBox({
+    prompt: "Workflow name (slug)",
+    validateInput: (v) =>
+      isValidSlug(v.trim()) ? undefined : "Use lowercase slug (a-z, 0-9, hyphens)",
+  });
+  if (!name) return;
+  const rel = assetRelativePath("workflow", name);
+  const abs = path.join(libraryRoot, rel);
+  if (fs.existsSync(abs)) {
+    vscode.window.showErrorMessage(`Workflow already exists: ${name}`);
+    return;
+  }
+  const body = `// ${name} — Grok workflow stub (edit with /create-workflow guidance)
+let meta = #{
+    name: "${name}",
+    description: "TODO",
+};
+phase("Main");
+complete(#{ ok: true });
+`;
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, body, "utf8");
+  writeUserAssetMeta(libraryRoot, "workflow", name, rel, body);
+  await scanAndRefresh();
+  await openAsset({
+    id: `library:workflow:${name}`,
+    kind: "workflow",
+    name,
+    absolutePath: abs,
+    relativePath: rel,
+    scope: "library",
+    frontmatter: {},
+  });
+  void context;
+}
+
+function resolveUserSkillRoots(): Partial<Record<RuntimeTarget, string>> {
+  const defaults = defaultSkillRoots(os.homedir());
+  const cfg = vscode.workspace
+    .getConfiguration("contextKit")
+    .get<Record<string, string>>("userSkillRoots", {});
+  return {
+    claude: cfg.claude?.trim() || defaults.claude,
+    grok: cfg.grok?.trim() || defaults.grok,
+    agents: cfg.agents?.trim() || defaults.agents,
+  };
+}
+
+async function deployToRuntime(context: vscode.ExtensionContext): Promise<void> {
+  const skillsDir = path.join(libraryRoot, "skills");
+  if (!fs.existsSync(skillsDir)) {
+    vscode.window.showWarningMessage("Context Kit: no skills in library yet.");
+    return;
+  }
+  const names = fs
+    .readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .filter((n) => fs.existsSync(path.join(skillsDir, n, "SKILL.md")));
+  if (!names.length) {
+    vscode.window.showWarningMessage("Context Kit: no skill folders with SKILL.md found.");
+    return;
+  }
+  const skill = await vscode.window.showQuickPick(names, {
+    title: "Deploy skill to user runtime",
+  });
+  if (!skill) return;
+
+  const roots = resolveUserSkillRoots();
+  const targetItems = (Object.entries(roots) as [RuntimeTarget, string | undefined][]).map(
+    ([id, root]) => ({
+      label: id,
+      description: root ?? "",
+      picked: id === "claude" || id === "grok",
+    }),
+  );
+  const picked = await vscode.window.showQuickPick(targetItems, {
+    title: "Target runtimes",
+    canPickMany: true,
+  });
+  if (!picked?.length) return;
+
+  const targets: Partial<Record<RuntimeTarget, string>> = {};
+  for (const p of picked) {
+    const root = roots[p.label as RuntimeTarget];
+    if (root) targets[p.label as RuntimeTarget] = root;
+  }
+
+  const dry = await vscode.window.showQuickPick(
+    [
+      { label: "Deploy", dryRun: false },
+      { label: "Dry-run only", dryRun: true },
+    ],
+    { title: "Confirm" },
+  );
+  if (!dry) return;
+
+  const result = deployAssetToRuntime({
+    libraryRoot,
+    kind: "skill",
+    name: skill,
+    targets,
+    dryRun: dry.dryRun,
+  });
+  getOutput().show(true);
+  log(
+    `Deploy ${skill}: written=${result.written.length} skipped=${result.skipped.length} errors=${result.errors.length}`,
+  );
+  result.written.forEach((w) => log(`  W ${w}`));
+  result.errors.forEach((e) => log(`  E ${e}`));
+  if (result.errors.length) {
+    vscode.window.showErrorMessage(`Context Kit: deploy had ${result.errors.length} error(s).`);
+  } else {
+    vscode.window.showInformationMessage(
+      dry.dryRun
+        ? `Dry-run: would write ${result.written.length} path(s).`
+        : `Deployed ${skill} to ${result.written.length} path(s).`,
+    );
+  }
   void context;
 }
 
