@@ -2,7 +2,7 @@
   "name": "context-kit",
   "displayName": "Context Kit",
   "description": "Standalone library and harness for agent skills, commands, and multi-provider project setup.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "danielmalka",
   "license": "MIT",
   "repository": {
@@ -186,7 +186,7 @@
     "type-check": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "check": "make check",
-    "package": "npm run compile && npx --yes @vscode/vsce package --no-dependencies",
+    "package": "npm run compile && node scripts/package-vsix.mjs",
     "package:reseed": "npm run sync-seed && npm run package",
     "vscode:prepublish": "npm run compile"
   },
