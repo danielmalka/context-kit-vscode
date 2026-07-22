@@ -34,8 +34,17 @@ class AssetNode extends vscode.TreeItem {
           ? "terminal"
           : asset.kind === "agent"
             ? "person"
-            : "file",
+            : asset.kind === "workflow"
+              ? "type-hierarchy"
+              : asset.kind === "checklist"
+                ? "checklist"
+                : asset.userEdited
+                  ? "edit"
+                  : "file",
     );
+    if (asset.userEdited) {
+      this.description = "edited · " + (asset.scope === "library" ? "library" : "workspace");
+    }
   }
 }
 
