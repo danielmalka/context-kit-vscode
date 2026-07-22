@@ -46,6 +46,12 @@ function scanTree(
           title = parsed.title;
           description = parsed.description;
           frontmatter = parsed.frontmatter;
+        } else if (absolutePath.endsWith(".rhai")) {
+          title = name;
+          const first = raw.split(/\r?\n/).find((l) => l.trim().length > 0);
+          if (first?.trim().startsWith("//")) {
+            description = first.replace(/^\/\/\s?/, "").trim();
+          }
         }
       } catch {
         // skip unreadable

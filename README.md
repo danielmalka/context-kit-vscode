@@ -51,23 +51,27 @@ Typical defaults: **Claude + Grok + agents** enabled; other providers off until 
 
 ## Commands
 
-| Command                                    | What it does                                                   |
-| ------------------------------------------ | -------------------------------------------------------------- |
-| `Context Kit: Scan Library`                | Rescan library / workspace and refresh the catalog             |
-| `Context Kit: Refresh Catalog`             | Same as scan (toolbar)                                         |
-| `Context Kit: New Skill`                   | Create a skill in the user library                             |
-| `Context Kit: New Command`                 | Create a command playbook in the user library                  |
-| `Context Kit: Edit Harness Defaults`       | Edit global apply defaults (language, providers, refresh mode) |
-| `Context Kit: Apply Harness to Workspace`  | Deploy harness with dry-run; write `.context-kit/project.json` |
-| `Context Kit: Show Library Path`           | Reveal the `globalStorage` library path                        |
-| `Context Kit: Reseed Library from Package` | Refresh unmodified seed assets from the bundled pack           |
+| Command                                         | What it does                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Context Kit: Scan Library`                     | Rescan library / workspace and refresh the catalog                                        |
+| `Context Kit: Refresh Catalog`                  | Same as scan (toolbar)                                                                    |
+| `Context Kit: New Skill`                        | Create a skill in the user library                                                        |
+| `Context Kit: New Command`                      | Create a command playbook in the user library                                             |
+| `Context Kit: New Workflow (Grok Rhai stub)`    | Create a `.rhai` workflow stub under `workflows/`                                         |
+| `Context Kit: Edit Harness Defaults`            | Edit global apply defaults (language, providers, refresh mode)                            |
+| `Context Kit: Apply Harness to Workspace`       | Deploy harness with dry-run; write `.context-kit/project.json`                            |
+| `Context Kit: Update Library from Package Seed` | Refresh clean seed assets; prompt Skip/Replace/Keep-both for edited ones                  |
+| `Context Kit: Deploy Skill to User Runtime`     | Copy a library skill into `~/.claude/skills`, `~/.grok/skills`, and/or `~/.agents/skills` |
+| `Context Kit: Show Library Path`                | Reveal the `globalStorage` library path                                                   |
+| `Context Kit: Reseed Library from Package`      | Refresh unmodified seed assets (clean only)                                               |
 
 ## Settings
 
-| Setting                    | Type    | Default | Description                                                                                           |
-| -------------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `contextKit.kitPath`       | string  | `""`    | Optional absolute path to a local asset-kit clone used only by maintainers to reseed `resources/seed` |
-| `contextKit.scanOnStartup` | boolean | `true`  | Scan the user library when the extension activates                                                    |
+| Setting                     | Type    | Default | Description                                                                                             |
+| --------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| `contextKit.kitPath`        | string  | `""`    | Optional absolute path to a local asset-kit clone used only by maintainers to reseed `resources/seed`   |
+| `contextKit.scanOnStartup`  | boolean | `true`  | Scan the user library when the extension activates                                                      |
+| `contextKit.userSkillRoots` | object  | `{}`    | Optional overrides for runtime skill roots (`claude`, `grok`, `agents`); empty → defaults under `$HOME` |
 
 ## Requirements
 
@@ -104,10 +108,12 @@ npm run compile     # esbuild → dist/extension.js
 ```
 
 - Press **F5** in VS Code with this folder open to launch an Extension Development Host.
-- Package a VSIX:
+- Package a VSIX (`resources/seed/` is already in the repo; `sync-seed` is optional for maintainers):
 
 ```bash
+npm run compile
 npm run package
+# Then: Command Palette → "Extensions: Install from VSIX…"
 ```
 
 ### Quality gate
@@ -117,8 +123,9 @@ npm run package
 | `make check`        | Format check, lint, type-check, unit tests                           |
 | `make check-strict` | Above + architecture greps (e.g. no `vscode` import in `src/domain`) |
 | `make compile`      | Bundle the extension                                                 |
+| `npm test`          | `node:test` suite under `tests/unit/`                                |
 
-Architecture rules for agents working on this repo live in `AGENTS.md`.
+Architecture rules for agents working on this repo live in `AGENTS.md`. CI runs `make check-strict` on pull requests and `main` via `.github/workflows/ci.yml`.
 
 ## Related
 

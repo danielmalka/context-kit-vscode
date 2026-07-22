@@ -74,6 +74,14 @@
       {
         "command": "contextKit.updateLibrary",
         "title": "Context Kit: Update Library from Package Seed"
+      },
+      {
+        "command": "contextKit.deployToRuntime",
+        "title": "Context Kit: Deploy Skill to User Runtime"
+      },
+      {
+        "command": "contextKit.newWorkflow",
+        "title": "Context Kit: New Workflow (Grok Rhai stub)"
       }
     ],
     "menus": {
@@ -104,6 +112,22 @@
           "type": "boolean",
           "default": true,
           "description": "Scan the user library when the extension activates."
+        },
+        "contextKit.userSkillRoots": {
+          "type": "object",
+          "default": {},
+          "description": "Optional overrides for user runtime skill roots (claude, grok, agents). Empty values fall back to ~/.claude/skills, ~/.grok/skills, ~/.agents/skills.",
+          "properties": {
+            "claude": {
+              "type": "string"
+            },
+            "grok": {
+              "type": "string"
+            },
+            "agents": {
+              "type": "string"
+            }
+          }
         }
       }
     }
