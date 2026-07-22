@@ -10,7 +10,6 @@ import {
   applyCleanLibraryUpdate,
   applyLibraryUpdate,
   planLibraryUpdate,
-  type DirtyResolution,
 } from "./library/seedUpdate";
 import { scanAll } from "./library/scan";
 import { factoryDefaultProfile, enabledProviders } from "./profile/defaults";
@@ -23,6 +22,10 @@ import {
   type RuntimeTarget,
 } from "./publish/deployRuntime";
 import { CatalogTreeProvider } from "./ui/treeProvider";
+import { openActivityMapPanel } from "./ui/activityPanel";
+import { openCoveragePanel } from "./ui/coveragePanel";
+import { openUpdateLibraryPanel } from "./ui/updatePanel";
+import { runLaunchPad } from "./ui/launchPad";
 import { getOutput, log } from "./output";
 import * as os from "node:os";
 
@@ -73,6 +76,9 @@ export function activate(context: vscode.ExtensionContext): void {
     ["contextKit.updateLibrary", () => updateLibrary(context)],
     ["contextKit.deployToRuntime", () => deployToRuntime(context)],
     ["contextKit.newWorkflow", () => newWorkflow(context)],
+    ["contextKit.openActivityMap", () => openActivityMapPanel(context)],
+    ["contextKit.openCoverage", () => openCoveragePanel(context, libraryRoot)],
+    ["contextKit.launchPad", () => runLaunchPad(libraryRoot)],
   ];
   for (const [id, fn] of cmds) {
     context.subscriptions.push(vscode.commands.registerCommand(id, fn));
@@ -175,50 +181,20 @@ async function updateLibrary(context: vscode.ExtensionContext): Promise<void> {
     return;
   }
 
-  const dirtyResolutions: Record<string, DirtyResolution> = {};
-  for (const d of plan.dirty) {
-    const pick = await vscode.window.showQuickPick(
-      [
-        {
-          label: "Skip",
-          description: "Keep my edited file",
-          resolution: "skip" as DirtyResolution,
-        },
-        {
-          label: "Replace",
-          description: "Overwrite with package seed",
-          resolution: "replace" as DirtyResolution,
-        },
-        {
-          label: "Keep both",
-          description: "Backup as *.user.* then install seed",
-          resolution: "keep-both" as DirtyResolution,
-        },
-      ],
-      {
-        title: `Dirty seed asset: ${d.name}`,
-        placeHolder: d.libraryRel,
-        ignoreFocusOut: true,
-      },
+  // No dirty items — apply clean/missing silently
+  if (plan.dirty.length === 0) {
+    const result = applyLibraryUpdate(libraryRoot, seedRoot, {});
+    log(`Update done (clean only): applied=${result.applied.length}`);
+    await scanAndRefresh();
+    vscode.window.showInformationMessage(
+      `Context Kit: library updated to seed ${result.librarySeedVersion}.`,
     );
-    if (!pick) {
-      dirtyResolutions[d.name] = "skip";
-      continue;
-    }
-    dirtyResolutions[d.name] = pick.resolution;
+    return;
   }
 
-  const result = applyLibraryUpdate(libraryRoot, seedRoot, dirtyResolutions);
-  getOutput().show(true);
-  log(
-    `Update done: applied=${result.applied.length} replaced=${result.replaced.length} ` +
-      `keptBoth=${result.keptBoth.length} skippedDirty=${result.skippedDirty.length} ` +
-      `librarySeedVersion=${result.librarySeedVersion}`,
-  );
-  await scanAndRefresh();
-  vscode.window.showInformationMessage(
-    `Context Kit: library update finished (seed ${result.librarySeedVersion}). See Output for details.`,
-  );
+  openUpdateLibraryPanel(context, libraryRoot, seedRoot, async () => {
+    await scanAndRefresh();
+  });
   void context;
 }
 

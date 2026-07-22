@@ -58,6 +58,7 @@ Typical defaults: **Claude + Grok + agents** enabled; other providers off until 
 3. **Apply** the harness to a repo when you want `.harness/`, provider glue, and `.context-kit/project.json`.
 4. **Update** the library when the extension ships a newer seed: **Update Library from Package Seed** (clean assets refresh automatically; edited seed assets get Skip / Replace / Keep-both).
 5. **Optional:** **Deploy Skill to User Runtime** if a tool only reads `~/.claude/skills` (or Grok / `.agents`).
+6. **Dream tools** (sidebar toolbar or Command Palette): **Activity Map**, **Coverage Map**, **Launch Pad**.
 
 ### Spec-driven development (in a harnessed project)
 
@@ -96,6 +97,9 @@ Full inventory of seed content (skills, commands, agents, layout, porting notes)
 | `Context Kit: Deploy Skill to User Runtime`     | Copy a library skill into `~/.claude/skills`, `~/.grok/skills`, and/or `~/.agents/skills` |
 | `Context Kit: Show Library Path`                | Reveal the `globalStorage` library path                                                   |
 | `Context Kit: Reseed Library from Package`      | Refresh unmodified seed assets (clean only)                                               |
+| `Context Kit: Open Activity Map`                | Webview radar of recent Claude/Grok sessions (M0/M1)                                      |
+| `Context Kit: Open Coverage Map`                | Library vs workspace `.harness` vs user runtime skills                                    |
+| `Context Kit: Launch Pad`                       | Open a terminal and run a library slash command via claude/grok/echo                      |
 
 ## Settings
 

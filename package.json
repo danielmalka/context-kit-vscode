@@ -37,10 +37,17 @@
       "context-kit": [
         {
           "id": "contextKit.catalog",
-          "name": "Catalog"
+          "name": "Catalog",
+          "contextualTitle": "Context Kit Catalog"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "contextKit.catalog",
+        "contents": "No assets scanned yet.\n[Scan library](command:contextKit.scan)\n\nApply a harness to the open workspace:\n[Apply Harness](command:contextKit.applyHarness)\n\nDream tools:\n[Activity map](command:contextKit.openActivityMap) · [Coverage](command:contextKit.openCoverage) · [Launch pad](command:contextKit.launchPad)"
+      }
+    ],
     "commands": [
       {
         "command": "contextKit.scan",
@@ -90,6 +97,21 @@
       {
         "command": "contextKit.newWorkflow",
         "title": "Context Kit: New Workflow (Grok Rhai stub)"
+      },
+      {
+        "command": "contextKit.openActivityMap",
+        "title": "Context Kit: Open Activity Map",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "contextKit.openCoverage",
+        "title": "Context Kit: Open Coverage Map",
+        "icon": "$(table)"
+      },
+      {
+        "command": "contextKit.launchPad",
+        "title": "Context Kit: Launch Pad (run command in terminal)",
+        "icon": "$(play)"
       }
     ],
     "menus": {
@@ -97,7 +119,22 @@
         {
           "command": "contextKit.refreshTree",
           "when": "view == contextKit.catalog",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "contextKit.openActivityMap",
+          "when": "view == contextKit.catalog",
+          "group": "navigation@2"
+        },
+        {
+          "command": "contextKit.openCoverage",
+          "when": "view == contextKit.catalog",
+          "group": "navigation@3"
+        },
+        {
+          "command": "contextKit.launchPad",
+          "when": "view == contextKit.catalog",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
