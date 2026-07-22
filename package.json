@@ -70,6 +70,10 @@
       {
         "command": "contextKit.reseedFromPackage",
         "title": "Context Kit: Reseed Library from Package (reset seed assets)"
+      },
+      {
+        "command": "contextKit.updateLibrary",
+        "title": "Context Kit: Update Library from Package Seed"
       }
     ],
     "menus": {
