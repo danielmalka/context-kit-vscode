@@ -1,0 +1,132 @@
+{
+  "name": "context-kit",
+  "displayName": "Context Kit",
+  "description": "Standalone library and harness for agent skills, commands, and multi-provider project setup.",
+  "version": "0.1.0",
+  "publisher": "danielmalka",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "context-kit",
+          "title": "Context Kit",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "context-kit": [
+        {
+          "id": "contextKit.catalog",
+          "name": "Catalog"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "contextKit.scan",
+        "title": "Context Kit: Scan Library"
+      },
+      {
+        "command": "contextKit.refreshTree",
+        "title": "Context Kit: Refresh Catalog",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "contextKit.openAsset",
+        "title": "Context Kit: Open Asset"
+      },
+      {
+        "command": "contextKit.newSkill",
+        "title": "Context Kit: New Skill"
+      },
+      {
+        "command": "contextKit.newCommand",
+        "title": "Context Kit: New Command"
+      },
+      {
+        "command": "contextKit.editDefaults",
+        "title": "Context Kit: Edit Harness Defaults"
+      },
+      {
+        "command": "contextKit.applyHarness",
+        "title": "Context Kit: Apply Harness to Workspace"
+      },
+      {
+        "command": "contextKit.showLibraryPath",
+        "title": "Context Kit: Show Library Path"
+      },
+      {
+        "command": "contextKit.reseedFromPackage",
+        "title": "Context Kit: Reseed Library from Package (reset seed assets)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "contextKit.refreshTree",
+          "when": "view == contextKit.catalog",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "contextKit.openAsset",
+          "when": "view == contextKit.catalog && viewItem == asset",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Context Kit",
+      "properties": {
+        "contextKit.kitPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional path to a local context-kit clone (maintainer reseed / power-user)."
+        },
+        "contextKit.scanOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan the user library when the extension activates."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "sync-seed": "bash scripts/sync-seed-from-kit.sh",
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "test": "node --import tsx --test tests/unit/*.test.ts",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "fmt": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "check": "make check",
+    "package": "npm run sync-seed && npm run compile && npx @vscode/vsce package --no-dependencies",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.20.0"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}

@@ -1,0 +1,23 @@
+# Dependencies & build
+node_modules/
+out/
+dist/
+*.vsix
+.vscode-test/
+*.tsbuildinfo
+.DS_Store
+
+# context-kit harness — local tooling, never versioned
+.harness/
+
+# Provider glue / dogfood (created by bootstrap or Apply Harness; points at .harness)
+.claude/
+.agents/
+.codex/
+.devin/
+.gemini/
+.grok/
+
+# OS / editor junk
+Thumbs.db
+*:Zone.Identifier

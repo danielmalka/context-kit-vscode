@@ -1,0 +1,22 @@
+# Copy to .github/workflows/ci.yml in your project.
+# Adjust the Rust toolchain version as needed.
+# Requires rust/verifications/Makefile copied to the project root (check-strict target).
+# check-strict shells out to cargo fmt, cargo clippy, and cargo audit, so the
+# toolchain below installs rustfmt and clippy; cargo-audit is installed separately.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - run: cargo install cargo-audit
+      - run: make check-strict

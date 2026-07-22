@@ -1,0 +1,24 @@
+# Copy to .github/workflows/ci.yml in your project.
+# Adjust the Python version as needed.
+# Requires python/verifications/Makefile copied to the project root (check-strict target).
+# ruff/mypy/pytest come from the [dependency-groups] dev group in pyproject.toml;
+# `uv run` installs them automatically on first invocation, no separate install step needed.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: make check-strict

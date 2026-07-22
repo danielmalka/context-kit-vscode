@@ -1,0 +1,22 @@
+# Copy to .github/workflows/ci.yml in your project.
+# Adjust the PHP version as needed.
+# Requires php/verifications/Makefile copied to the project root (check-strict target).
+# The Makefile execs every command inside `docker compose exec app` (see AGENTS.md:
+# Stack — Docker, service: app), so this assumes the project's own docker-compose.yml
+# defines that service with Composer dependencies already installed in the image
+# (including a coverage driver, since check-strict runs `pest --coverage`). CI builds
+# and starts the stack before running the gate; there is no host-side composer step.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build app
+      - run: make check-strict
