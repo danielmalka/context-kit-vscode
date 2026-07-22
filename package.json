@@ -2,7 +2,7 @@
   "name": "context-kit",
   "displayName": "Context Kit",
   "description": "Standalone library and harness for agent skills, commands, and multi-provider project setup.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "danielmalka",
   "license": "MIT",
   "repository": {
@@ -45,7 +45,7 @@
     "viewsWelcome": [
       {
         "view": "contextKit.catalog",
-        "contents": "No assets scanned yet.\n[Scan library](command:contextKit.scan)\n\nApply a harness to the open workspace:\n[Apply Harness](command:contextKit.applyHarness)\n\nDream tools:\n[Activity map](command:contextKit.openActivityMap) · [Coverage](command:contextKit.openCoverage) · [Launch pad](command:contextKit.launchPad)"
+        "contents": "No assets scanned yet.\n[Scan library](command:contextKit.scan)\n\nApply a harness to the open workspace:\n[Apply Harness](command:contextKit.applyHarness)\n\nDream tools:\n[Activity map](command:contextKit.openActivityMap) · [Coverage](command:contextKit.openCoverage) · [Launch pad](command:contextKit.launchPad) · [Orchestrator](command:contextKit.openOrchestrator)"
       }
     ],
     "commands": [
@@ -112,6 +112,11 @@
         "command": "contextKit.launchPad",
         "title": "Context Kit: Launch Pad (run command in terminal)",
         "icon": "$(play)"
+      },
+      {
+        "command": "contextKit.openOrchestrator",
+        "title": "Context Kit: Orchestrator (multi-CLI pipeline)",
+        "icon": "$(type-hierarchy-sub)"
       }
     ],
     "menus": {
@@ -135,6 +140,11 @@
           "command": "contextKit.launchPad",
           "when": "view == contextKit.catalog",
           "group": "navigation@4"
+        },
+        {
+          "command": "contextKit.openOrchestrator",
+          "when": "view == contextKit.catalog",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [

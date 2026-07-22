@@ -25,6 +25,7 @@ import { CatalogTreeProvider } from "./ui/treeProvider";
 import { openActivityMapPanel } from "./ui/activityPanel";
 import { openCoveragePanel } from "./ui/coveragePanel";
 import { openUpdateLibraryPanel } from "./ui/updatePanel";
+import { openOrchestratorPanel } from "./ui/orchestratorPanel";
 import { runLaunchPad } from "./ui/launchPad";
 import { getOutput, log } from "./output";
 import * as os from "node:os";
@@ -79,6 +80,7 @@ export function activate(context: vscode.ExtensionContext): void {
     ["contextKit.openActivityMap", () => openActivityMapPanel(context)],
     ["contextKit.openCoverage", () => openCoveragePanel(context, libraryRoot)],
     ["contextKit.launchPad", () => runLaunchPad(libraryRoot)],
+    ["contextKit.openOrchestrator", () => openOrchestratorPanel(context, libraryRoot)],
   ];
   for (const [id, fn] of cmds) {
     context.subscriptions.push(vscode.commands.registerCommand(id, fn));
