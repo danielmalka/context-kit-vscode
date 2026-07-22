@@ -10,6 +10,12 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
+## 1.2.0
+
+### Features
+
+- **Orchestrator (M4):** multi-CLI pipeline webview — sequential waves, parallel groups, confirm between waves
+
 ## 1.1.0
 
 ### Features
