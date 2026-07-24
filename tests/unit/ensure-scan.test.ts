@@ -5,6 +5,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { ensureLibraryFromSeed } from "../../src/library/ensure";
 import { scanLibrary } from "../../src/library/scan";
+import { planLibraryUpdate } from "../../src/library/seedUpdate";
 import { contentHash } from "../../src/domain/hash";
 
 describe("ensureLibraryFromSeed + scan", () => {
@@ -19,12 +20,19 @@ describe("ensureLibraryFromSeed + scan", () => {
     fs.mkdirSync(path.join(seed, "shared", "skills"), { recursive: true });
     fs.mkdirSync(path.join(seed, "shared", "commands"), { recursive: true });
     fs.mkdirSync(path.join(seed, "agents"), { recursive: true });
+    fs.mkdirSync(path.join(seed, "typescript", "prompts"), { recursive: true });
+    fs.mkdirSync(path.join(seed, "typescript", "rules"), { recursive: true });
     fs.writeFileSync(
       path.join(seed, "shared", "skills", "demo.md"),
       "---\nname: demo\ndescription: d\n---\n\n# Demo\n",
     );
     fs.writeFileSync(path.join(seed, "shared", "commands", "fix.md"), "# fix\n\nDo fix\n");
     fs.writeFileSync(path.join(seed, "agents", "implementer.md"), "# impl\n");
+    fs.writeFileSync(
+      path.join(seed, "typescript", "prompts", "ts-refactor.md"),
+      "# refactor\n\nRefactor it\n",
+    );
+    fs.writeFileSync(path.join(seed, "typescript", "rules", "patterns.md"), "# patterns\n");
     fs.writeFileSync(path.join(seed, "seed.json"), JSON.stringify({ seedVersion: "test-1" }));
   });
 
@@ -40,6 +48,19 @@ describe("ensureLibraryFromSeed + scan", () => {
     assert.ok(assets.some((a) => a.kind === "skill" && a.name === "demo"));
     assert.ok(assets.some((a) => a.kind === "command" && a.name === "fix"));
     assert.ok(assets.some((a) => a.kind === "agent" && a.name === "implementer"));
+  });
+
+  it("installs language prompts and leaves a fresh library up to date", () => {
+    const promptPath = path.join(lib, "langs", "typescript", "prompts", "ts-refactor.md");
+    assert.equal(fs.readFileSync(promptPath, "utf8"), "# refactor\n\nRefactor it\n");
+    assert.ok(fs.existsSync(path.join(lib, "langs", "typescript", "rules", "patterns.md")));
+    // A fresh install must not immediately advertise an update.
+    const plan = planLibraryUpdate(lib, seed);
+    assert.deepEqual(
+      plan.missing.map((a) => a.libraryRel),
+      [],
+    );
+    assert.equal(plan.needsUpdate, false);
   });
 
   it("does not overwrite dirty seed assets on reinstall", () => {

@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { contentHash } from "../domain/hash";
 import type { AssetKind, AssetMeta, LibraryManifest, SeedManifest } from "../domain/types";
-import { assetRelativePath, metaRelativePath } from "../domain/paths";
+import { mapSeedFileToLibraryRel, metaRelativePath } from "../domain/paths";
 import { kindFromRelativePath, nameFromPath } from "../domain/parseAsset";
 
 export interface LibraryPaths {
@@ -21,54 +21,6 @@ function readJson(file: string): unknown {
 function writeJson(file: string, data: unknown): void {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", "utf8");
-}
-
-/**
- * Map seed layout (flat shared/skills/foo.md) → library nested skills/foo/SKILL.md
- */
-function mapSeedFileToLibraryRel(
-  seedRel: string,
-): { kind: AssetKind; name: string; rel: string } | null {
-  const n = seedRel.replace(/\\/g, "/");
-  // shared/skills/name.md
-  let m = n.match(/^shared\/(skills|commands|checklists|templates|prompts)\/([^/]+)\.md$/i);
-  if (m) {
-    const folder = m[1].toLowerCase();
-    const base = m[2];
-    const kindMap: Partial<Record<string, AssetKind>> = {
-      skills: "skill",
-      commands: "command",
-      checklists: "checklist",
-      templates: "template",
-      prompts: "prompt",
-    };
-    const kind = kindMap[folder];
-    if (!kind) return null;
-    return { kind, name: base, rel: assetRelativePath(kind, base) };
-  }
-  // agents/name.md
-  m = n.match(/^agents\/([^/]+)\.md$/i);
-  if (m) {
-    return { kind: "agent", name: m[1], rel: assetRelativePath("agent", m[1]) };
-  }
-  // lang packs: go/skills/foo.md → still skill but we only put shared in library for now;
-  // lang-specific live under library/langs/{lang}/...
-  m = n.match(/^(go|php|python|rust|typescript)\/(skills|commands|rules)\/([^/]+)\.md$/i);
-  if (m) {
-    const lang = m[1];
-    const folder = m[2].toLowerCase();
-    const base = m[3];
-    const kindMap: Partial<Record<string, AssetKind>> = {
-      skills: "skill",
-      commands: "command",
-      rules: "rule",
-    };
-    const kind = kindMap[folder];
-    if (!kind) return null;
-    const rel = path.posix.join("langs", lang, assetRelativePath(kind, base));
-    return { kind, name: `${lang}/${base}`, rel };
-  }
-  return null;
 }
 
 function walkFiles(dir: string, base = dir): string[] {

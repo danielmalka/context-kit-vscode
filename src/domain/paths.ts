@@ -38,6 +38,52 @@ export function assetRelativePath(kind: AssetKind, name: string): string {
   return path.posix.join(sub, `${name}.md`);
 }
 
+const SEED_FOLDER_KINDS: Partial<Record<string, AssetKind>> = {
+  skills: "skill",
+  commands: "command",
+  checklists: "checklist",
+  templates: "template",
+  rules: "rule",
+  prompts: "prompt",
+};
+
+/**
+ * Map a seed-layout relative path (flat `shared/skills/foo.md`) to its library form.
+ * Single source of truth for both the initial install and the update flow.
+ */
+export function mapSeedFileToLibraryRel(
+  seedRel: string,
+): { kind: AssetKind; name: string; rel: string } | null {
+  const n = seedRel.replace(/\\/g, "/");
+
+  let m = n.match(/^shared\/(skills|commands|checklists|templates|prompts)\/([^/]+)\.md$/i);
+  if (m) {
+    const kind = SEED_FOLDER_KINDS[m[1].toLowerCase()];
+    if (!kind) return null;
+    return { kind, name: m[2], rel: assetRelativePath(kind, m[2]) };
+  }
+
+  m = n.match(/^agents\/([^/]+)\.md$/i);
+  if (m) {
+    return { kind: "agent", name: m[1], rel: assetRelativePath("agent", m[1]) };
+  }
+
+  m = n.match(/^(go|php|python|rust|typescript)\/(skills|commands|rules|prompts)\/([^/]+)\.md$/i);
+  if (m) {
+    const lang = m[1];
+    const base = m[3];
+    const kind = SEED_FOLDER_KINDS[m[2].toLowerCase()];
+    if (!kind) return null;
+    return {
+      kind,
+      name: `${lang}/${base}`,
+      rel: path.posix.join("langs", lang, assetRelativePath(kind, base)),
+    };
+  }
+
+  return null;
+}
+
 export function metaRelativePath(kind: AssetKind, name: string): string {
   return path.posix.join(".meta", librarySubdir(kind), `${name}.json`);
 }
