@@ -23,9 +23,9 @@ export function buildProjectConfig(
 
 export function parseProjectConfig(raw: string): ProjectConfigFile | null {
   try {
-    const data = JSON.parse(raw) as ProjectConfigFile;
+    const data = JSON.parse(raw) as Partial<ProjectConfigFile> | null;
     if (data?.version !== 1 || !data.profile) return null;
-    return data;
+    return data as ProjectConfigFile;
   } catch {
     return null;
   }

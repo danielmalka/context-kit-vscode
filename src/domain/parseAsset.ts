@@ -11,7 +11,7 @@ export interface ParsedAsset {
 
 export function parseMarkdownAsset(raw: string, fallbackName: string): ParsedAsset {
   const { data, content } = matter(raw);
-  const fm = (data ?? {}) as Record<string, unknown>;
+  const fm = data as Record<string, unknown>;
   const name = typeof fm.name === "string" && fm.name.trim() ? fm.name.trim() : fallbackName;
   const description = typeof fm.description === "string" ? fm.description.trim() : undefined;
 

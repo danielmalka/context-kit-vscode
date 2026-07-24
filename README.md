@@ -27,7 +27,8 @@ It does **not** replace Claude Code, Grok, or other CLIs. Those remain the runti
 - **Harness defaults** — Save preferred language and providers once
 - **Apply Harness** — Dry-run + confirm; selective providers; language detection or `none` / ask
 - **Project config** — Writes `.context-kit/project.json` for teams (commit this; keep `.harness/` local)
-- **Quality gate** — `make check` / `make check-strict` for development (TypeScript, ESLint, Prettier, tests)
+- **Orchestrator** — Chain library slash commands across CLIs in sequential or parallel waves; save named pipelines
+- **Quality gate** — `make check` / `make check-strict` for development (TypeScript, ESLint, Prettier, tests, coverage floor)
 
 > Screenshots and a short demo GIF will land here as the UI stabilizes.
 
@@ -58,7 +59,16 @@ Typical defaults: **Claude + Grok + agents** enabled; other providers off until 
 3. **Apply** the harness to a repo when you want `.harness/`, provider glue, and `.context-kit/project.json`.
 4. **Update** the library when the extension ships a newer seed: **Update Library from Package Seed** (clean assets refresh automatically; edited seed assets get Skip / Replace / Keep-both).
 5. **Optional:** **Deploy Skill to User Runtime** if a tool only reads `~/.claude/skills` (or Grok / `.agents`).
-6. **Dream tools** (sidebar toolbar or Command Palette): **Activity Map**, **Coverage Map**, **Launch Pad**.
+6. **Dream tools** (sidebar toolbar or Command Palette): **Activity Map**, **Coverage Map**, **Launch Pad**, **Orchestrator**.
+
+### Orchestrator
+
+Builds a pipeline of library slash commands across CLIs and runs it in the integrated terminal, wave by wave, asking for confirmation between waves. Pick `claude`, `grok`, or `echo` (dry run) per step.
+
+- A step runs **up to 3 slash commands**, chained with `&&` in the same terminal. The **Args** box applies to the **first command only**.
+- Steps sharing a **parallel group** name run together as one wave (one terminal each); a step without a group is its own sequential wave.
+- **Save** names the current pipeline; reload it later from the **Saved orchestration** selector, then **Update** or **Delete**. Names must be unique, and saved pipelines live in extension storage — they follow you across workspaces and are not committed to the repo.
+- Whatever you type in **Args** reaches the CLI literally: `$VAR`, backticks and `$(…)` are quoted, not expanded by the shell.
 
 ### Spec-driven development (in a harnessed project)
 
@@ -84,22 +94,24 @@ Full inventory of seed content (skills, commands, agents, layout, porting notes)
 
 ## Commands
 
-| Command                                         | What it does                                                                              |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `Context Kit: Scan Library`                     | Rescan library / workspace and refresh the catalog                                        |
-| `Context Kit: Refresh Catalog`                  | Same as scan (toolbar)                                                                    |
-| `Context Kit: New Skill`                        | Create a skill in the user library                                                        |
-| `Context Kit: New Command`                      | Create a command playbook in the user library                                             |
-| `Context Kit: New Workflow (Grok Rhai stub)`    | Create a `.rhai` workflow stub under `workflows/`                                         |
-| `Context Kit: Edit Harness Defaults`            | Edit global apply defaults (language, providers, refresh mode)                            |
-| `Context Kit: Apply Harness to Workspace`       | Deploy harness with dry-run; write `.context-kit/project.json`                            |
-| `Context Kit: Update Library from Package Seed` | Refresh clean seed assets; prompt Skip/Replace/Keep-both for edited ones                  |
-| `Context Kit: Deploy Skill to User Runtime`     | Copy a library skill into `~/.claude/skills`, `~/.grok/skills`, and/or `~/.agents/skills` |
-| `Context Kit: Show Library Path`                | Reveal the `globalStorage` library path                                                   |
-| `Context Kit: Reseed Library from Package`      | Refresh unmodified seed assets (clean only)                                               |
-| `Context Kit: Open Activity Map`                | Webview radar of recent Claude/Grok sessions (M0/M1)                                      |
-| `Context Kit: Open Coverage Map`                | Library vs workspace `.harness` vs user runtime skills                                    |
-| `Context Kit: Launch Pad`                       | Open a terminal and run a library slash command via claude/grok/echo                      |
+| Command                                                        | What it does                                                                              |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Context Kit: Scan Library`                                    | Rescan library / workspace and refresh the catalog                                        |
+| `Context Kit: Refresh Catalog`                                 | Same as scan (toolbar)                                                                    |
+| `Context Kit: Open Asset`                                      | Open the selected catalog entry in the editor                                             |
+| `Context Kit: New Skill`                                       | Create a skill in the user library                                                        |
+| `Context Kit: New Command`                                     | Create a command playbook in the user library                                             |
+| `Context Kit: New Workflow (Grok Rhai stub)`                   | Create a `.rhai` workflow stub under `workflows/`                                         |
+| `Context Kit: Edit Harness Defaults`                           | Edit global apply defaults (language, providers, refresh mode)                            |
+| `Context Kit: Apply Harness to Workspace`                      | Deploy harness with dry-run; write `.context-kit/project.json`                            |
+| `Context Kit: Update Library from Package Seed`                | Refresh clean seed assets; prompt Skip/Replace/Keep-both for edited ones                  |
+| `Context Kit: Deploy Skill to User Runtime`                    | Copy a library skill into `~/.claude/skills`, `~/.grok/skills`, and/or `~/.agents/skills` |
+| `Context Kit: Show Library Path`                               | Reveal the `globalStorage` library path                                                   |
+| `Context Kit: Reseed Library from Package (reset seed assets)` | Refresh unmodified seed assets (clean only)                                               |
+| `Context Kit: Open Activity Map`                               | Webview radar of recent Claude/Grok sessions (M0/M1)                                      |
+| `Context Kit: Open Coverage Map`                               | Library vs workspace `.harness` vs user runtime skills                                    |
+| `Context Kit: Launch Pad (run command in terminal)`            | Open a terminal and run a library slash command via claude/grok/echo                      |
+| `Context Kit: Orchestrator (multi-CLI pipeline)`               | Build, save and run a multi-step pipeline of slash commands                               |
 
 ## Settings
 
@@ -150,7 +162,7 @@ npm run compile     # esbuild → dist/extension.js
 npm install
 npm run compile
 npm run package
-# → creates context-kit-0.1.0.vsix in the repo root
+# → creates releases/context-kit-1.4.0.vsix (plus a gitignored copy in the repo root)
 # Then: Command Palette → "Extensions: Install from VSIX…"
 #
 # Optional (maintainers with a local asset-kit clone):
@@ -159,12 +171,14 @@ npm run package
 
 ### Quality gate
 
-| Command             | Purpose                                                              |
-| ------------------- | -------------------------------------------------------------------- |
-| `make check`        | Format check, lint, type-check, unit tests                           |
-| `make check-strict` | Above + architecture greps (e.g. no `vscode` import in `src/domain`) |
-| `make compile`      | Bundle the extension                                                 |
-| `npm test`          | `node:test` suite under `tests/unit/`                                |
+| Command             | Purpose                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `make check`        | Format check (Prettier), lint (ESLint), type-check (`tsc`), unit tests                |
+| `make check-strict` | Above + architecture greps (e.g. no `vscode` import in `src/domain`) + coverage floor |
+| `make compile`      | Bundle the extension                                                                  |
+| `npm test`          | `node:test` suite under `tests/unit/` (181 tests)                                     |
+
+Lint rules are in `eslint.config.js` (typescript-eslint `strictTypeChecked`, type-aware). `make check-strict` measures line coverage over `src/` via `scripts/coverage-report.mjs` and fails below `COVERAGE_MIN` (default 80%; currently ~87%). Scope caveats — including why `src/ui/**` is excluded — are documented in `AGENTS.md`.
 
 Architecture rules for agents working on this repo live in `AGENTS.md`. CI runs `make check-strict` on pull requests and `main` via `.github/workflows/ci.yml`.
 

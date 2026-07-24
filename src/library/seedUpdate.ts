@@ -42,9 +42,9 @@ export interface ApplyUpdateResult {
   librarySeedVersion: string;
 }
 
-function readJson<T>(file: string): T | null {
+function readJson(file: string): unknown {
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8")) as T;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     return null;
   }
@@ -68,7 +68,7 @@ export function mapSeedFileToLibraryRel(
   if (m) {
     const folder = m[1].toLowerCase();
     const base = m[2];
-    const kindMap: Record<string, AssetKind> = {
+    const kindMap: Partial<Record<string, AssetKind>> = {
       skills: "skill",
       commands: "command",
       checklists: "checklist",
@@ -91,7 +91,7 @@ export function mapSeedFileToLibraryRel(
     const lang = m[1];
     const folder = m[2].toLowerCase();
     const base = m[3];
-    const kindMap: Record<string, AssetKind> = {
+    const kindMap: Partial<Record<string, AssetKind>> = {
       skills: "skill",
       commands: "command",
       rules: "rule",
@@ -135,12 +135,12 @@ export function listSeedMappedAssets(seedRoot: string): SeedMappedAsset[] {
 }
 
 export function readSeedVersion(seedRoot: string): string {
-  const m = readJson<SeedManifest>(path.join(seedRoot, "seed.json"));
+  const m = readJson(path.join(seedRoot, "seed.json")) as SeedManifest | null;
   return m?.seedVersion ?? "0.0.0-dev";
 }
 
 export function readLibrarySeedVersion(libraryRoot: string): string | null {
-  const m = readJson<LibraryManifest>(path.join(libraryRoot, "library.json"));
+  const m = readJson(path.join(libraryRoot, "library.json")) as LibraryManifest | null;
   return m?.seedVersion ?? null;
 }
 
@@ -150,7 +150,7 @@ export function classifySeedAsset(
 ): ClassifiedSeedAsset {
   const libraryAbs = path.join(libraryRoot, asset.libraryRel);
   const metaPath = path.join(libraryRoot, metaRelativePath(asset.kind, safeMetaName(asset.name)));
-  const meta = readJson<AssetMeta>(metaPath);
+  const meta = readJson(metaPath) as AssetMeta | null;
 
   if (!fs.existsSync(libraryAbs)) {
     return { ...asset, status: "missing", libraryAbs, meta };
@@ -254,7 +254,7 @@ export function applyCleanLibraryUpdate(
 
 function bumpLibraryManifest(libraryRoot: string, seedVersion: string, setVersion: boolean): void {
   const libManifestPath = path.join(libraryRoot, "library.json");
-  const existing = readJson<LibraryManifest>(libManifestPath);
+  const existing = readJson(libManifestPath) as LibraryManifest | null;
   const now = new Date().toISOString();
   writeJson(libManifestPath, {
     seedVersion: setVersion ? seedVersion : (existing?.seedVersion ?? seedVersion),
@@ -303,7 +303,7 @@ export function resolveDirtyAsset(
 export function applyLibraryUpdate(
   libraryRoot: string,
   seedRoot: string,
-  dirtyResolutions: Record<string, DirtyResolution> = {},
+  dirtyResolutions: Partial<Record<string, DirtyResolution>> = {},
 ): ApplyUpdateResult {
   const plan = planLibraryUpdate(libraryRoot, seedRoot);
   const { applied, dirty, packageSeedVersion } = applyCleanLibraryUpdate(

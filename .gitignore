@@ -2,7 +2,8 @@
 node_modules/
 out/
 dist/
-*.vsix
+# root convenience copies only — versioned builds live under releases/
+/*.vsix
 .vscode-test/
 *.tsbuildinfo
 .DS_Store

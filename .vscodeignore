@@ -27,6 +27,8 @@ AGENTS.md
 .grok/**
 .context-kit/**
 
-# Build junk
+# Build junk / historical packages (not needed inside a VSIX)
 *.vsix
+releases/**
 out/**
+CHANGELOG.md

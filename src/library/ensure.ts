@@ -10,9 +10,9 @@ export interface LibraryPaths {
   seedVersion: string;
 }
 
-function readJson<T>(file: string): T | null {
+function readJson(file: string): unknown {
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8")) as T;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     return null;
   }
@@ -35,7 +35,7 @@ function mapSeedFileToLibraryRel(
   if (m) {
     const folder = m[1].toLowerCase();
     const base = m[2];
-    const kindMap: Record<string, AssetKind> = {
+    const kindMap: Partial<Record<string, AssetKind>> = {
       skills: "skill",
       commands: "command",
       checklists: "checklist",
@@ -58,7 +58,7 @@ function mapSeedFileToLibraryRel(
     const lang = m[1];
     const folder = m[2].toLowerCase();
     const base = m[3];
-    const kindMap: Record<string, AssetKind> = {
+    const kindMap: Partial<Record<string, AssetKind>> = {
       skills: "skill",
       commands: "command",
       rules: "rule",
@@ -93,11 +93,11 @@ export function ensureLibraryFromSeed(
 ): LibraryPaths {
   fs.mkdirSync(libraryRoot, { recursive: true });
   const seedManifestPath = path.join(seedRoot, "seed.json");
-  const seedManifest = readJson<SeedManifest>(seedManifestPath) ?? {
+  const seedManifest = (readJson(seedManifestPath) as SeedManifest | null) ?? {
     seedVersion: "0.0.0-dev",
   };
   const libManifestPath = path.join(libraryRoot, "library.json");
-  const existing = readJson<LibraryManifest>(libManifestPath);
+  const existing = readJson(libManifestPath) as LibraryManifest | null;
 
   // Always reconcile seed assets: never overwrite dirty/user; fill missing; refresh clean.
   installSeedAssets(libraryRoot, seedRoot, seedManifest.seedVersion, {
@@ -134,7 +134,7 @@ function installSeedAssets(
     const hash = contentHash(raw);
 
     if (fs.existsSync(dest) && mode.onlyMissingOrClean && !mode.forceAllSeed) {
-      const meta = readJson<AssetMeta>(metaPath);
+      const meta = readJson(metaPath) as AssetMeta | null;
       const current = contentHash(fs.readFileSync(dest, "utf8"));
       const dirty = !meta || meta.origin === "user" || current !== meta.seedHashWhenInstalled;
       if (dirty) continue;
@@ -184,7 +184,9 @@ export function readAssetMeta(
   kind: AssetKind,
   name: string,
 ): AssetMeta | null {
-  return readJson<AssetMeta>(path.join(libraryRoot, metaRelativePath(kind, safeMetaName(name))));
+  return readJson(
+    path.join(libraryRoot, metaRelativePath(kind, safeMetaName(name))),
+  ) as AssetMeta | null;
 }
 
 export function isUserEdited(

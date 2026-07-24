@@ -49,13 +49,13 @@ class AssetNode extends vscode.TreeItem {
 }
 
 export class CatalogTreeProvider implements vscode.TreeDataProvider<TreeNode> {
-  private _onDidChange = new vscode.EventEmitter<TreeNode | undefined | void>();
+  private _onDidChange = new vscode.EventEmitter<TreeNode | undefined>();
   readonly onDidChangeTreeData = this._onDidChange.event;
   private assets: CatalogAsset[] = [];
 
   refresh(assets: CatalogAsset[]): void {
     this.assets = assets;
-    this._onDidChange.fire();
+    this._onDidChange.fire(undefined);
   }
 
   getTreeItem(element: TreeNode): vscode.TreeItem {
@@ -67,9 +67,9 @@ export class CatalogTreeProvider implements vscode.TreeDataProvider<TreeNode> {
       const library = this.assets.filter((a) => a.scope === "library");
       const workspace = this.assets.filter((a) => a.scope === "workspace");
       return [
-        new CategoryNode(`Library (${library.length})`, "scope", this.byKind(library)),
+        new CategoryNode(`Library (${String(library.length)})`, "scope", this.byKind(library)),
         new CategoryNode(
-          `Workspace .harness (${workspace.length})`,
+          `Workspace .harness (${String(workspace.length)})`,
           "scope",
           this.byKind(workspace),
           workspace.length
@@ -107,7 +107,7 @@ export class CatalogTreeProvider implements vscode.TreeDataProvider<TreeNode> {
       if (!list?.length) continue;
       nodes.push(
         new CategoryNode(
-          `${kind}s (${list.length})`,
+          `${kind}s (${String(list.length)})`,
           kind,
           list.map((a) => new AssetNode(a)),
           vscode.TreeItemCollapsibleState.Collapsed,

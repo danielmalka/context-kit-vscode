@@ -47,10 +47,10 @@ export function openCoveragePanel(context: vscode.ExtensionContext, libraryRoot:
   <p class="sub">Library assets vs workspace <code>.harness</code> and user runtime skill roots.
     Workspace: ${folder ? `<code>${escapeHtml(folder)}</code>` : "<em>none open</em>"}</p>
   <div class="row">
-    <span class="badge">library ${sum.total}</span>
-    <span class="badge">in workspace ${sum.inWorkspace}</span>
-    <span class="badge">in runtime ${sum.inRuntime}</span>
-    <span class="badge">library-only ${sum.libraryOnly}</span>
+    <span class="badge">library ${String(sum.total)}</span>
+    <span class="badge">in workspace ${String(sum.inWorkspace)}</span>
+    <span class="badge">in runtime ${String(sum.inRuntime)}</span>
+    <span class="badge">library-only ${String(sum.libraryOnly)}</span>
     <button id="refresh" class="secondary">Refresh</button>
   </div>
   <table>
@@ -67,8 +67,10 @@ export function openCoveragePanel(context: vscode.ExtensionContext, libraryRoot:
 
   paint();
   panel.webview.onDidReceiveMessage(
-    (m) => {
-      if (m?.type === "refresh") paint();
+    (raw: unknown) => {
+      if (typeof raw !== "object" || raw === null) return;
+      const m = raw as Record<string, unknown>;
+      if (m.type === "refresh") paint();
     },
     undefined,
     context.subscriptions,

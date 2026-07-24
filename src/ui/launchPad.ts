@@ -23,14 +23,12 @@ export async function runLaunchPad(libraryRoot: string): Promise<void> {
   );
   if (!pick) return;
 
-  const cliPick = await vscode.window.showQuickPick(
-    [
-      { label: "claude", description: "Claude Code CLI", cli: "claude" as LaunchCli },
-      { label: "grok", description: "Grok Build CLI", cli: "grok" as LaunchCli },
-      { label: "echo (dry)", description: "Print only — verify wiring", cli: "echo" as LaunchCli },
-    ],
-    { title: "Which CLI?" },
-  );
+  const cliOptions: (vscode.QuickPickItem & { cli: LaunchCli })[] = [
+    { label: "claude", description: "Claude Code CLI", cli: "claude" },
+    { label: "grok", description: "Grok Build CLI", cli: "grok" },
+    { label: "echo (dry)", description: "Print only — verify wiring", cli: "echo" },
+  ];
+  const cliPick = await vscode.window.showQuickPick(cliOptions, { title: "Which CLI?" });
   if (!cliPick) return;
 
   const extra = await vscode.window.showInputBox({
