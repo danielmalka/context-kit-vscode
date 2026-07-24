@@ -22,13 +22,13 @@ You complement `qa-reviewer` (which owns the generic gate) with React/PWA/i18n d
 3. **Render safety** — stable keys (no index for reorderable lists), no unnecessary re-renders, memoization only with a reason.
 4. **Accessibility** — labels, focus management, contrast; jsx-a11y not suppressed without justification.
 5. **PWA** (when touched) — SW update strategy `prompt`; offline assets precached; maskable icon safe zone; SW off in dev.
-6. **i18n** (when touched) — no hardcoded user-facing strings; `count` for plurals; locale-aware dates; key parity across the 5 locales; `de` layout tested.
+6. **i18n** (when touched) — no hardcoded user-facing strings; `count` for plurals; locale-aware dates; key parity across every shipped locale; layout tested in the most verbose one.
 
 ## Rules reference
 
 - `.harness/rules/react-pwa.md` — React/PWA/i18n rules
 - `.harness/rules/patterns.md`, `.harness/rules/security.md`, `.harness/rules/testing.md`
-- `docs/roadmap.md` — phase context and decision anchors
+- The project's roadmap/decision doc, when it has one (e.g. `docs/roadmap.md`) — phase context and decision anchors
 
 ## Verdict
 

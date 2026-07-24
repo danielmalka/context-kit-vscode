@@ -10,6 +10,7 @@
 | `context-kit-1.4.0.vsix` | 1.4.0   | + Orch multi-cmd/step + named presets  |
 | `context-kit-1.5.0.vsix` | 1.5.0   | + Frontend/design seed track           |
 | `context-kit-1.5.1.vsix` | 1.5.1   | Fix permanent update prompt on skip    |
+| `context-kit-1.5.2.vsix` | 1.5.2   | Generic React/PWA/i18n seed guidance   |
 
 Install: Command Palette → **Extensions: Install from VSIX…**
 

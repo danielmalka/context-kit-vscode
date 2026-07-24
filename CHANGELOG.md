@@ -10,6 +10,28 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
+## 1.5.2
+
+### Seed content — generic React/PWA/i18n guidance
+
+The bundled React/PWA/i18n rules and the React reviewer no longer assume one project's locale
+set, roadmap phases, or path aliases. Previously both read as guidance for a single front-end —
+naming a specific locale list, numbered project phases, and project-specific import aliases. They
+now read as generic guidance that applies to any React front-end.
+
+The bundled seed moves to `1.5.1+2026.07.24.eeb332b`. Only the two affected files change:
+
+- `typescript/rules/react-pwa.md`
+- `agents/react-reviewer.md`
+
+Existing installs are offered these through **Update Library from Package Seed**. The two files
+refresh automatically for anyone who never edited them; an edited copy is preserved and offered
+**Skip / Replace / Keep-both** so nothing you wrote is overwritten.
+
+(The seed's `1.5.1` version and the extension's `1.5.2` version are independent namespaces — the
+seed number tracks bundled library content, the extension number tracks the VS Code package. They
+sit near each other by coincidence, not error.)
+
 ## 1.5.1
 
 ### Fix — permanent update prompt after skipping a customized asset

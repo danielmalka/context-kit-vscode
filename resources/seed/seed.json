@@ -1,7 +1,7 @@
 {
-  "seedVersion": "1.5.0+2026.07.24.e0e7d6b",
+  "seedVersion": "1.5.1+2026.07.24.eeb332b",
   "source": "context-kit",
-  "generatedAt": "2026-07-24T20:30:54Z",
+  "generatedAt": "2026-07-24T21:14:33Z",
   "counts": {
     "skills": 29,
     "commands": 20,

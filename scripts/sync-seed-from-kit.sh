@@ -11,7 +11,7 @@ SEED="$ROOT/resources/seed"
 #   MINOR — new assets
 #   PATCH — content fixes only
 # The build metadata (+YYYY.MM.DD.<shortsha>) is stamped below and is informational only.
-SEED_SEMVER="1.5.0"
+SEED_SEMVER="1.5.1"
 
 if [ ! -d "$KIT/shared" ]; then
   echo "Error: context-kit not found at $KIT (set CONTEXT_KIT_PATH)" >&2
