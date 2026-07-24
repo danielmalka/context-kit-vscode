@@ -92,6 +92,15 @@ export function readLibrarySeedVersion(libraryRoot: string): string | null {
   return m?.seedVersion ?? null;
 }
 
+/**
+ * Package seed version the user last acknowledged. Falls back to `seedVersion` for legacy
+ * manifests (every install in the field predates this field), then null when unknown.
+ */
+export function readAcknowledgedSeedVersion(libraryRoot: string): string | null {
+  const m = readJson(path.join(libraryRoot, "library.json")) as LibraryManifest | null;
+  return m?.acknowledgedSeedVersion ?? m?.seedVersion ?? null;
+}
+
 export function classifySeedAsset(
   libraryRoot: string,
   asset: SeedMappedAsset,
@@ -145,8 +154,13 @@ export function planLibraryUpdate(libraryRoot: string, seedRoot: string): Librar
   }
 
   // A strictly older incoming seed is a downgrade, never an update — whatever its contents say.
-  // At the same version, missing or drifted assets still warrant a repair pass.
-  const versionCmp = compareSeedVersions(librarySeedVersion, packageSeedVersion);
+  // At the same version, missing or drifted assets still warrant a repair pass. The comparison
+  // runs against the *acknowledged* version, not the installed one: skipping a dirty asset
+  // acknowledges the current package without bumping seedVersion, and must stop the nag.
+  const versionCmp = compareSeedVersions(
+    readAcknowledgedSeedVersion(libraryRoot),
+    packageSeedVersion,
+  );
   const needsUpdate =
     versionCmp < 0 ||
     (versionCmp === 0 &&
@@ -209,6 +223,9 @@ function bumpLibraryManifest(libraryRoot: string, seedVersion: string, setVersio
   const now = new Date().toISOString();
   writeJson(libManifestPath, {
     seedVersion: setVersion ? seedVersion : (existing?.seedVersion ?? seedVersion),
+    // Always acknowledge the package the user just acted on, even when a skipped dirty asset
+    // pins seedVersion to the old value — otherwise the update prompt would never clear.
+    acknowledgedSeedVersion: seedVersion,
     installedAt: existing?.installedAt ?? now,
     lastUpdatedAt: now,
   } satisfies LibraryManifest);

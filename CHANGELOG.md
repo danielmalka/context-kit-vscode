@@ -10,6 +10,23 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
+## 1.5.1
+
+### Fix — permanent update prompt after skipping a customized asset
+
+Choosing **Skip** for a library asset you had edited during an update no longer leaves the
+extension asking you to update forever. Previously, skipping a customized asset pinned the
+recorded seed version to the old value, so every subsequent check still reported the package
+seed as newer and re-offered the same update — a prompt you could never clear, because Skip is
+a permanent choice.
+
+The library manifest now records which package seed version you have acknowledged (applied,
+replaced, or skipped) separately from the version your unedited assets were written from. Once
+you act on an update, the prompt stays quiet until a genuinely newer package seed ships — at
+which point your still-customized asset is offered again for reconsideration. Existing installs
+are handled transparently: a manifest without the new field falls back to its recorded seed
+version, so a newer package is still correctly seen as an update.
+
 ## 1.5.0
 
 ### Seed content — frontend/design track

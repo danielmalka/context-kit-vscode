@@ -2,7 +2,7 @@
   "name": "context-kit",
   "displayName": "Context Kit",
   "description": "Standalone library and harness for agent skills, commands, and multi-provider project setup.",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "publisher": "danielmalka",
   "license": "MIT",
   "repository": {
