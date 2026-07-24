@@ -50,19 +50,44 @@ resources/seed/
     templates/              # PRD, techspec, tasks, …
     prompts/                # reusable prompt fragments
   go|php|python|rust|typescript/
-    skills|commands|rules|verifications/
+    skills|commands|rules|prompts|verifications/   # prompts where present (not in rust/)
 ```
+
+`<lang>/AGENTS.md` exists in the asset kit but is **not** part of the seed — it documents the
+kit repo's own folder layout, not a harness template. The language `AGENTS.md` users receive
+is `<lang>/verifications/AGENTS.md`, written to the workspace root by **Apply Harness**.
 
 ### Asset kinds
 
-| Kind                          | Seed form                            | After install in library / `.harness`       |
-| ----------------------------- | ------------------------------------ | ------------------------------------------- |
-| Skill                         | `shared/skills/name.md`              | `skills/name/SKILL.md`                      |
-| Command                       | `shared/commands/name.md`            | `commands/name.md`                          |
-| Agent                         | `agents/name.md`                     | `agents/name.md`                            |
-| Checklist / template / prompt | under `shared/`                      | same basename                               |
-| Workflow                      | (user-created) `workflows/name.rhai` | same                                        |
-| Language rules                | `{lang}/rules/*.md`                  | `.harness/rules/` when that lang is applied |
+| Kind                          | Seed form                            | After install in library / `.harness`         |
+| ----------------------------- | ------------------------------------ | --------------------------------------------- |
+| Skill                         | `shared/skills/name.md`              | `skills/name/SKILL.md`                        |
+| Command                       | `shared/commands/name.md`            | `commands/name.md`                            |
+| Agent                         | `agents/name.md`                     | `agents/name.md`                              |
+| Checklist / template / prompt | under `shared/`                      | same basename                                 |
+| Workflow                      | (user-created) `workflows/name.rhai` | same                                          |
+| Language rules                | `{lang}/rules/*.md`                  | `.harness/rules/` when that lang is applied   |
+| Language prompt               | `{lang}/prompts/*.md`                | `.harness/prompts/` when that lang is applied |
+
+---
+
+## Seed version
+
+`seed.json` carries `seedVersion` as `MAJOR.MINOR.PATCH+YYYY.MM.DD.<shortsha>` — for example
+`1.5.0+2026.07.24.4b60ba5`.
+
+| Part      | Meaning                                                                |
+| --------- | ---------------------------------------------------------------------- |
+| `MAJOR`   | An asset was removed or renamed, or frontmatter schema changed         |
+| `MINOR`   | New assets, nothing removed                                            |
+| `PATCH`   | Content fixes only                                                     |
+| after `+` | Provenance: sync date and the asset-kit commit. Ignored when comparing |
+
+**Update Library** compares only the semver triple. A seed older than the one already in your
+library is a downgrade and is never offered as an update; at the same version, assets that are
+missing or have drifted from the factory copy are still repaired. Libraries stamped with the
+older date-only scheme (`2026.07.22+e4d4cfe`) sort below every semver release, so they upgrade
+on the next run without any manual step.
 
 ---
 

@@ -194,6 +194,24 @@ describe("seedUpdate", () => {
     assert.equal(plan.needsUpdate, false);
   });
 
+  it("does not treat a lower incoming seed version as an update", () => {
+    // library is at 2.0.0 after applying seedV2; seedV1 (1.0.0) must not look like an upgrade
+    applyLibraryUpdate(lib, seedV2);
+    assert.equal(readLibrarySeedVersion(lib), "2.0.0");
+    assert.equal(planLibraryUpdate(lib, seedV1).needsUpdate, false);
+  });
+
+  it("treats a legacy library seed version as older so the install still upgrades", () => {
+    fs.writeFileSync(
+      path.join(lib, "library.json"),
+      JSON.stringify({ seedVersion: "2026.07.22+e4d4cfe" }),
+    );
+    const plan = planLibraryUpdate(lib, seedV1);
+    assert.equal(plan.librarySeedVersion, "2026.07.22+e4d4cfe");
+    assert.deepEqual(plan.missing, [], "assets are present — only the version differs");
+    assert.equal(plan.needsUpdate, true);
+  });
+
   it("rejects resolving an asset that is not dirty", () => {
     const mapped = listSeedMappedAssets(seedV1).find((a) => a.name === "demo")!;
     const clean = classifySeedAsset(lib, mapped);
@@ -271,6 +289,16 @@ describe("seedUpdate seed mapping and manifests", () => {
       kind: "rule",
       name: "go/errors",
       rel: "langs/go/rules/errors.md",
+    });
+    assert.deepEqual(mapSeedFileToLibraryRel("typescript/prompts/ts-refactor.md"), {
+      kind: "prompt",
+      name: "typescript/ts-refactor",
+      rel: "langs/typescript/prompts/ts-refactor.md",
+    });
+    assert.deepEqual(mapSeedFileToLibraryRel("go/prompts/go-refactor.md"), {
+      kind: "prompt",
+      name: "go/go-refactor",
+      rel: "langs/go/prompts/go-refactor.md",
     });
     assert.deepEqual(mapSeedFileToLibraryRel("rust\\commands\\bench.md"), {
       kind: "command",

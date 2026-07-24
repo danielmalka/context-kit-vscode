@@ -149,6 +149,8 @@ npm install
 
 # Optional (maintainers): refresh bundled seed from a local asset-kit checkout
 # export CONTEXT_KIT_PATH=/path/to/local/asset-kit
+# Bump SEED_SEMVER in scripts/sync-seed-from-kit.sh first; the checkout must be
+# clean and on main (ALLOW_DIRTY_SEED=1 overrides, for local testing only).
 npm run sync-seed
 
 make check          # prettier + eslint + tsc + tests

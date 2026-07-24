@@ -60,6 +60,59 @@ below 100% no matter how many tests exist.
 - Domain pure; `vscode` only in `extension.ts` and `ui/**` (and thin publish if needed)
 - Seed pipeline: `scripts/sync-seed-from-kit.sh`
 
+## Seed versioning
+
+`resources/seed/seed.json` carries `seedVersion` in the form
+`MAJOR.MINOR.PATCH+YYYY.MM.DD.<shortsha>` (e.g. `1.5.0+2026.07.24.4b60ba5`).
+
+- **The semver part is authored by hand.** It lives in `SEED_SEMVER` at the top of
+  `scripts/sync-seed-from-kit.sh` and is the only thing a maintainer edits. Bump it
+  **before** running `npm run sync-seed`.
+- **The build metadata after `+` is provenance only** — sync date plus the kit's short SHA,
+  stamped by the script. `src/domain/seedVersion.ts` ignores everything after the triple, so
+  a re-sync of identical content never reads as an upgrade.
+
+| Bump  | When                                                           |
+| ----- | -------------------------------------------------------------- |
+| MAJOR | An asset was removed or renamed, or frontmatter schema changed |
+| MINOR | New assets, nothing removed                                    |
+| PATCH | Content fixes only                                             |
+
+`planLibraryUpdate` compares versions with `compareSeedVersions`, not string inequality.
+That distinction is the point: before it, any difference triggered "update", so shipping an
+older seed than the one already installed was indistinguishable from an upgrade and would
+silently roll a user's library backwards. Now a strictly older incoming seed is never an
+update; at an equal version, missing or drifted clean assets still trigger a repair pass.
+
+Legacy stamps (`2026.07.22+e4d4cfe`) and anything unparseable are "unknown" and sort older
+than every real version — including a year-shaped major, which is why `parseSeedVersion`
+rejects `major >= 1000`. Installs in the field carrying a legacy value therefore still see
+the next release as an upgrade.
+
+### Sync guards
+
+`sync-seed-from-kit.sh` refuses to run when the kit checkout is dirty or not on `main`, and
+exits 1. Users read the stamped SHA as provenance; without the guard the script stamped
+whatever HEAD it found, so a feature-branch SHA — unreachable from `main` — could ship inside
+a released seed. `ALLOW_DIRTY_SEED=1` overrides it for local testing and prints a warning
+that the build must not be released. A kit path that is not a git checkout has no branch and
+no SHA to stamp, so it syncs unstamped with a note rather than tripping the branch guard.
+
+### What is and is not synced
+
+`<lang>/prompts/` is synced and mapped (`langs/<lang>/prompts/*.md` in the library).
+`shared/prompts/` always worked; only the language-scoped ones were dropped, and in three
+places at once — the script's copy list plus two near-identical copies of the seed→library
+mapper. There is now exactly one mapper, `mapSeedFileToLibraryRel` in `src/domain/paths.ts`,
+used by both the initial install (`src/library/ensure.ts`) and the update flow
+(`src/library/seedUpdate.ts`, which re-exports it). Change the seed layout in that one place.
+
+`<lang>/AGENTS.md` is **deliberately not synced.** Do not "fix" this: it is a README for the
+kit repo's own folder, documenting a manual `cp` workflow that this extension exists to
+replace. The template that matters is `<lang>/verifications/AGENTS.md`, which is already
+shipped and written to the workspace root by `src/publish/applyHarness.ts` when
+`options.writeAgentsMd` is set.
+
 ## Mutation testing (optional)
 
 Not configured yet.

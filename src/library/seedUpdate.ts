@@ -2,8 +2,11 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { contentHash } from "../domain/hash";
 import type { AssetKind, AssetMeta, LibraryManifest, SeedManifest } from "../domain/types";
-import { metaRelativePath } from "../domain/paths";
+import { mapSeedFileToLibraryRel, metaRelativePath } from "../domain/paths";
+import { compareSeedVersions } from "../domain/seedVersion";
 import { walkFiles } from "./ensure";
+
+export { mapSeedFileToLibraryRel };
 
 export type DirtyResolution = "skip" | "replace" | "keep-both";
 
@@ -57,61 +60,6 @@ function writeJson(file: string, data: unknown): void {
 
 function safeMetaName(name: string): string {
   return name.replace(/\//g, "__");
-}
-
-/** Map seed layout (flat shared/skills/foo.md) → library nested path. */
-export function mapSeedFileToLibraryRel(
-  seedRel: string,
-): { kind: AssetKind; name: string; rel: string } | null {
-  const n = seedRel.replace(/\\/g, "/");
-  let m = n.match(/^shared\/(skills|commands|checklists|templates|prompts)\/([^/]+)\.md$/i);
-  if (m) {
-    const folder = m[1].toLowerCase();
-    const base = m[2];
-    const kindMap: Partial<Record<string, AssetKind>> = {
-      skills: "skill",
-      commands: "command",
-      checklists: "checklist",
-      templates: "template",
-      prompts: "prompt",
-    };
-    const kind = kindMap[folder];
-    if (!kind) return null;
-    if (kind === "skill") {
-      return { kind, name: base, rel: path.posix.join("skills", base, "SKILL.md") };
-    }
-    return { kind, name: base, rel: path.posix.join(folder, `${base}.md`) };
-  }
-  m = n.match(/^agents\/([^/]+)\.md$/i);
-  if (m) {
-    return { kind: "agent", name: m[1], rel: path.posix.join("agents", `${m[1]}.md`) };
-  }
-  m = n.match(/^(go|php|python|rust|typescript)\/(skills|commands|rules)\/([^/]+)\.md$/i);
-  if (m) {
-    const lang = m[1];
-    const folder = m[2].toLowerCase();
-    const base = m[3];
-    const kindMap: Partial<Record<string, AssetKind>> = {
-      skills: "skill",
-      commands: "command",
-      rules: "rule",
-    };
-    const kind = kindMap[folder];
-    if (!kind) return null;
-    if (kind === "skill") {
-      return {
-        kind,
-        name: `${lang}/${base}`,
-        rel: path.posix.join("langs", lang, "skills", base, "SKILL.md"),
-      };
-    }
-    return {
-      kind,
-      name: `${lang}/${base}`,
-      rel: path.posix.join("langs", lang, folder, `${base}.md`),
-    };
-  }
-  return null;
 }
 
 export function listSeedMappedAssets(seedRoot: string): SeedMappedAsset[] {
@@ -196,10 +144,13 @@ export function planLibraryUpdate(libraryRoot: string, seedRoot: string): Librar
     }
   }
 
+  // A strictly older incoming seed is a downgrade, never an update — whatever its contents say.
+  // At the same version, missing or drifted assets still warrant a repair pass.
+  const versionCmp = compareSeedVersions(librarySeedVersion, packageSeedVersion);
   const needsUpdate =
-    librarySeedVersion !== packageSeedVersion ||
-    missing.length > 0 ||
-    clean.some((c) => c.seedHash !== c.meta?.contentHash);
+    versionCmp < 0 ||
+    (versionCmp === 0 &&
+      (missing.length > 0 || clean.some((c) => c.seedHash !== c.meta?.contentHash)));
 
   return {
     packageSeedVersion,
