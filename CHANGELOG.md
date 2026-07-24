@@ -14,7 +14,7 @@ Bump `package.json` **before** `npm run package` when keeping a build in `releas
 
 ### Seed content — frontend/design track
 
-The bundled seed moves to `1.5.0+2026.07.24.0f3e761` and now carries the frontend/design
+The bundled seed moves to `1.5.0+2026.07.24.e0e7d6b` and now carries the frontend/design
 assets, plus the language refactor prompts that the previous build synced but never shipped.
 
 New assets:

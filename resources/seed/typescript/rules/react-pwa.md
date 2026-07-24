@@ -1,6 +1,6 @@
 # React / PWA / i18n — Rules
 
-Mandatory rules for the Take Control front-end. Treat violations as BLOCKER at review gates.
+Mandatory rules for React/PWA/i18n front-ends. Treat violations as BLOCKER at review gates.
 Enforcement note: the *mechanical* checks live in the versioned `eslint.config.js`
 (react-hooks, jsx-a11y, boundaries). This file is the reviewer's judgment layer.
 
