@@ -4,16 +4,21 @@ COVERAGE_MIN ?= 80
 
 # node:test (not Vitest)
 TEST_CMD ?= node --import tsx --test tests/unit/*.test.ts
-# Coverage for node:test is best-effort; floor may be waived until experimental coverage is wired.
-STRICT_TEST_CMD ?= node --import tsx --test tests/unit/*.test.ts
+# check-strict measures line coverage over src/ only (the built-in "all files" row
+# counts the test files themselves and reads ~8pts high). The custom reporter emits the
+# `coverage: X% (floor N%)` line the QA gate requires and exits non-zero below COVERAGE_MIN.
+STRICT_TEST_CMD ?= COVERAGE_MIN=$(COVERAGE_MIN) node --import tsx --experimental-test-coverage \
+	--test-reporter=spec --test-reporter-destination=stdout \
+	--test-reporter=./scripts/coverage-report.mjs --test-reporter-destination=stdout \
+	--test tests/unit/*.test.ts
 
 fmt:
 	@npx --no-install prettier --version >/dev/null 2>&1 || { echo "prettier not installed. Install: npm install --save-dev prettier"; exit 1; }
-	npx prettier --write "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
+	npx prettier --write "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.js"
 
 fmt-check:
 	@npx --no-install prettier --version >/dev/null 2>&1 || { echo "prettier not installed. Install: npm install --save-dev prettier"; exit 1; }
-	npx prettier --check "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.mjs"
+	npx prettier --check "src/**/*.ts" "tests/**/*.ts" "*.md" "docs/**/*.md" "package.json" "esbuild.mjs" "eslint.config.js"
 
 lint:
 	@npx --no-install eslint --version >/dev/null 2>&1 || { echo "eslint not installed. Install: npm install --save-dev eslint typescript-eslint @eslint/js"; exit 1; }

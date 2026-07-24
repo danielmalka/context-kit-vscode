@@ -74,13 +74,33 @@ export function activate(context: vscode.ExtensionContext): void {
     ["contextKit.applyHarness", () => runApplyHarness(context)],
     ["contextKit.showLibraryPath", () => showLibraryPath()],
     ["contextKit.reseedFromPackage", () => reseed(context)],
-    ["contextKit.updateLibrary", () => updateLibrary(context)],
+    [
+      "contextKit.updateLibrary",
+      () => {
+        updateLibrary(context);
+      },
+    ],
     ["contextKit.deployToRuntime", () => deployToRuntime(context)],
     ["contextKit.newWorkflow", () => newWorkflow(context)],
-    ["contextKit.openActivityMap", () => openActivityMapPanel(context)],
-    ["contextKit.openCoverage", () => openCoveragePanel(context, libraryRoot)],
+    [
+      "contextKit.openActivityMap",
+      () => {
+        openActivityMapPanel(context);
+      },
+    ],
+    [
+      "contextKit.openCoverage",
+      () => {
+        openCoveragePanel(context, libraryRoot);
+      },
+    ],
     ["contextKit.launchPad", () => runLaunchPad(libraryRoot)],
-    ["contextKit.openOrchestrator", () => openOrchestratorPanel(context, libraryRoot)],
+    [
+      "contextKit.openOrchestrator",
+      () => {
+        openOrchestratorPanel(context, libraryRoot);
+      },
+    ],
   ];
   for (const [id, fn] of cmds) {
     context.subscriptions.push(vscode.commands.registerCommand(id, fn));
@@ -108,23 +128,28 @@ function ensureDefaultProfile(context: vscode.ExtensionContext): void {
 }
 
 function getDefaultProfile(context: vscode.ExtensionContext): HarnessProfile {
-  return (
-    (context.globalState.get("harness.defaultProfile") as HarnessProfile | undefined) ??
-    factoryDefaultProfile()
-  );
+  return context.globalState.get("harness.defaultProfile") ?? factoryDefaultProfile();
 }
 
-async function scanAndRefresh(): Promise<CatalogAsset[]> {
+function getExtensionVersion(context: vscode.ExtensionContext): string {
+  const pkg: unknown = context.extension.packageJSON;
+  if (pkg && typeof pkg === "object" && "version" in pkg && typeof pkg.version === "string") {
+    return pkg.version;
+  }
+  return "0.0.0";
+}
+
+function scanAndRefresh(): CatalogAsset[] {
   const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const assets = scanAll(libraryRoot, folder);
   tree.refresh(assets);
   const lib = assets.filter((a) => a.scope === "library");
   const skills = lib.filter((a) => a.kind === "skill").length;
   const commands = lib.filter((a) => a.kind === "command").length;
-  status.text = `$(library) CK ${skills}s/${commands}c`;
-  status.tooltip = `Context Kit library: ${lib.length} assets\n${libraryRoot}`;
+  status.text = `$(library) CK ${String(skills)}s/${String(commands)}c`;
+  status.tooltip = `Context Kit library: ${String(lib.length)} assets\n${libraryRoot}`;
   status.show();
-  log(`Scan: ${assets.length} assets (library=${lib.length})`);
+  log(`Scan: ${String(assets.length)} assets (library=${String(lib.length)})`);
   return assets;
 }
 
@@ -156,16 +181,16 @@ async function reseed(context: vscode.ExtensionContext): Promise<void> {
   if (ok !== "Reseed") return;
   const result = applyCleanLibraryUpdate(libraryRoot, seedRoot);
   log(
-    `Reseed applied=${result.applied.length} dirtyLeft=${result.dirty.length} seed=${result.packageSeedVersion}`,
+    `Reseed applied=${String(result.applied.length)} dirtyLeft=${String(result.dirty.length)} seed=${result.packageSeedVersion}`,
   );
-  await scanAndRefresh();
+  scanAndRefresh();
   vscode.window.showInformationMessage(
-    `Context Kit: reseeded clean assets (${result.applied.length} written, ${result.dirty.length} dirty skipped).`,
+    `Context Kit: reseeded clean assets (${String(result.applied.length)} written, ${String(result.dirty.length)} dirty skipped).`,
   );
   void context;
 }
 
-async function updateLibrary(context: vscode.ExtensionContext): Promise<void> {
+function updateLibrary(context: vscode.ExtensionContext): void {
   if (!fs.existsSync(path.join(seedRoot, "seed.json"))) {
     vscode.window.showErrorMessage("Context Kit: package seed missing.");
     return;
@@ -173,7 +198,7 @@ async function updateLibrary(context: vscode.ExtensionContext): Promise<void> {
   const plan = planLibraryUpdate(libraryRoot, seedRoot);
   log(
     `Update plan: package=${plan.packageSeedVersion} library=${plan.librarySeedVersion ?? "none"} ` +
-      `missing=${plan.missing.length} clean=${plan.clean.length} dirty=${plan.dirty.length} user=${plan.userOwned.length}`,
+      `missing=${String(plan.missing.length)} clean=${String(plan.clean.length)} dirty=${String(plan.dirty.length)} user=${String(plan.userOwned.length)}`,
   );
 
   if (!plan.needsUpdate && plan.dirty.length === 0) {
@@ -186,16 +211,16 @@ async function updateLibrary(context: vscode.ExtensionContext): Promise<void> {
   // No dirty items — apply clean/missing silently
   if (plan.dirty.length === 0) {
     const result = applyLibraryUpdate(libraryRoot, seedRoot, {});
-    log(`Update done (clean only): applied=${result.applied.length}`);
-    await scanAndRefresh();
+    log(`Update done (clean only): applied=${String(result.applied.length)}`);
+    scanAndRefresh();
     vscode.window.showInformationMessage(
       `Context Kit: library updated to seed ${result.librarySeedVersion}.`,
     );
     return;
   }
 
-  openUpdateLibraryPanel(context, libraryRoot, seedRoot, async () => {
-    await scanAndRefresh();
+  openUpdateLibraryPanel(context, libraryRoot, seedRoot, () => {
+    scanAndRefresh();
   });
   void context;
 }
@@ -239,7 +264,7 @@ description: ${description ?? ""}
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, body, "utf8");
   writeUserAssetMeta(libraryRoot, "skill", name, rel, body);
-  await scanAndRefresh();
+  scanAndRefresh();
   await openAsset({
     id: `library:skill:${name}`,
     kind: "skill",
@@ -276,7 +301,7 @@ async function newCommand(context: vscode.ExtensionContext): Promise<void> {
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, body, "utf8");
   writeUserAssetMeta(libraryRoot, "command", name, rel, body);
-  await scanAndRefresh();
+  scanAndRefresh();
   await openAsset({
     id: `library:command:${name}`,
     kind: "command",
@@ -313,7 +338,7 @@ complete(#{ ok: true });
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, body, "utf8");
   writeUserAssetMeta(libraryRoot, "workflow", name, rel, body);
-  await scanAndRefresh();
+  scanAndRefresh();
   await openAsset({
     id: `library:workflow:${name}`,
     kind: "workflow",
@@ -330,7 +355,7 @@ function resolveUserSkillRoots(): Partial<Record<RuntimeTarget, string>> {
   const defaults = defaultSkillRoots(os.homedir());
   const cfg = vscode.workspace
     .getConfiguration("contextKit")
-    .get<Record<string, string>>("userSkillRoots", {});
+    .get<Partial<Record<string, string>>>("userSkillRoots", {});
   return {
     claude: cfg.claude?.trim() || defaults.claude,
     grok: cfg.grok?.trim() || defaults.grok,
@@ -374,8 +399,8 @@ async function deployToRuntime(context: vscode.ExtensionContext): Promise<void> 
 
   const targets: Partial<Record<RuntimeTarget, string>> = {};
   for (const p of picked) {
-    const root = roots[p.label as RuntimeTarget];
-    if (root) targets[p.label as RuntimeTarget] = root;
+    const root = roots[p.label];
+    if (root) targets[p.label] = root;
   }
 
   const dry = await vscode.window.showQuickPick(
@@ -396,17 +421,23 @@ async function deployToRuntime(context: vscode.ExtensionContext): Promise<void> 
   });
   getOutput().show(true);
   log(
-    `Deploy ${skill}: written=${result.written.length} skipped=${result.skipped.length} errors=${result.errors.length}`,
+    `Deploy ${skill}: written=${String(result.written.length)} skipped=${String(result.skipped.length)} errors=${String(result.errors.length)}`,
   );
-  result.written.forEach((w) => log(`  W ${w}`));
-  result.errors.forEach((e) => log(`  E ${e}`));
+  result.written.forEach((w) => {
+    log(`  W ${w}`);
+  });
+  result.errors.forEach((e) => {
+    log(`  E ${e}`);
+  });
   if (result.errors.length) {
-    vscode.window.showErrorMessage(`Context Kit: deploy had ${result.errors.length} error(s).`);
+    vscode.window.showErrorMessage(
+      `Context Kit: deploy had ${String(result.errors.length)} error(s).`,
+    );
   } else {
     vscode.window.showInformationMessage(
       dry.dryRun
-        ? `Dry-run: would write ${result.written.length} path(s).`
-        : `Deployed ${skill} to ${result.written.length} path(s).`,
+        ? `Dry-run: would write ${String(result.written.length)} path(s).`
+        : `Deployed ${skill} to ${String(result.written.length)} path(s).`,
     );
   }
   void context;
@@ -536,11 +567,11 @@ async function runApplyHarness(context: vscode.ExtensionContext): Promise<void> 
       providers: { ...defaults.providers },
       options: { ...defaults.options },
     };
-  } else if (mode.label.startsWith("Reuse")) {
+  } else if (fromProject && mode.label.startsWith("Reuse")) {
     profile = {
-      ...fromProject!,
-      providers: { ...fromProject!.providers },
-      options: { ...fromProject!.options },
+      ...fromProject,
+      providers: { ...fromProject.providers },
+      options: { ...fromProject.options },
     };
   } else {
     const customized = await customizeProfile(defaults, "Apply harness");
@@ -583,16 +614,16 @@ async function runApplyHarness(context: vscode.ExtensionContext): Promise<void> 
     libraryRoot,
     seedRoot,
     profile,
-    extensionVersion: context.extension.packageJSON.version,
+    extensionVersion: getExtensionVersion(context),
     dryRun: true,
   });
 
   const summary = [
     `Providers: ${enabledProviders(profile).join(", ") || "(none)"}`,
     `Language: ${profile.language}`,
-    `Would write: ${dry.written.length}`,
-    `Symlinks: ${dry.symlinks.length}`,
-    `Skip: ${dry.skipped.length}`,
+    `Would write: ${String(dry.written.length)}`,
+    `Symlinks: ${String(dry.symlinks.length)}`,
+    `Skip: ${String(dry.skipped.length)}`,
   ].join("\n");
 
   const confirm = await vscode.window.showInformationMessage(
@@ -604,11 +635,17 @@ async function runApplyHarness(context: vscode.ExtensionContext): Promise<void> 
   if (confirm === "Show dry-run details") {
     getOutput().show(true);
     log("--- dry-run written ---");
-    dry.written.forEach((w) => log(`  W ${w}`));
+    dry.written.forEach((w) => {
+      log(`  W ${w}`);
+    });
     log("--- symlinks ---");
-    dry.symlinks.forEach((s) => log(`  L ${s}`));
+    dry.symlinks.forEach((s) => {
+      log(`  L ${s}`);
+    });
     log("--- skipped ---");
-    dry.skipped.forEach((s) => log(`  S ${s}`));
+    dry.skipped.forEach((s) => {
+      log(`  S ${s}`);
+    });
     const again = await vscode.window.showInformationMessage("Apply now?", "Apply", "Cancel");
     if (again !== "Apply") return;
   } else if (confirm !== "Apply") {
@@ -620,18 +657,20 @@ async function runApplyHarness(context: vscode.ExtensionContext): Promise<void> 
     libraryRoot,
     seedRoot,
     profile,
-    extensionVersion: context.extension.packageJSON.version,
+    extensionVersion: getExtensionVersion(context),
     dryRun: false,
   });
 
   getOutput().show(true);
   log(`=== Apply harness → ${folder} ===`);
   log(
-    `written=${result.written.length} symlinks=${result.symlinks.length} skipped=${result.skipped.length}`,
+    `written=${String(result.written.length)} symlinks=${String(result.symlinks.length)} skipped=${String(result.skipped.length)}`,
   );
-  result.errors.forEach((e) => log(`ERROR ${e}`));
-  await scanAndRefresh();
+  result.errors.forEach((e) => {
+    log(`ERROR ${e}`);
+  });
+  scanAndRefresh();
   vscode.window.showInformationMessage(
-    `Context Kit applied: ${result.written.length} writes, ${result.symlinks.length} links. See Output.`,
+    `Context Kit applied: ${String(result.written.length)} writes, ${String(result.symlinks.length)} links. See Output.`,
   );
 }

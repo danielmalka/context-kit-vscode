@@ -50,10 +50,10 @@ export function openUpdateLibraryPanel(
   <p class="sub">Package <code>${escapeHtml(plan.packageSeedVersion)}</code>
     · library <code>${escapeHtml(plan.librarySeedVersion ?? "none")}</code></p>
   <div class="row stat">
-    <span class="badge">missing ${plan.missing.length}</span>
-    <span class="badge">clean ${plan.clean.length}</span>
-    <span class="badge">dirty ${plan.dirty.length}</span>
-    <span class="badge">user ${plan.userOwned.length}</span>
+    <span class="badge">missing ${String(plan.missing.length)}</span>
+    <span class="badge">clean ${String(plan.clean.length)}</span>
+    <span class="badge">dirty ${String(plan.dirty.length)}</span>
+    <span class="badge">user ${String(plan.userOwned.length)}</span>
   </div>
   <p class="sub">Clean and missing assets update automatically. Choose how to handle each <strong>edited</strong> seed asset.</p>
   <h2>Dirty assets</h2>
@@ -79,21 +79,23 @@ export function openUpdateLibraryPanel(
   render();
 
   panel.webview.onDidReceiveMessage(
-    async (msg) => {
-      if (msg?.type === "choice" && typeof msg.name === "string") {
-        choices.set(msg.name, msg.value as DirtyResolution);
+    async (raw: unknown) => {
+      if (typeof raw !== "object" || raw === null) return;
+      const msg = raw as Record<string, unknown>;
+      if (msg.type === "choice" && typeof msg.name === "string" && isDirtyResolution(msg.value)) {
+        choices.set(msg.name, msg.value);
       }
-      if (msg?.type === "cancel") {
+      if (msg.type === "cancel") {
         panel.dispose();
         return;
       }
-      if (msg?.type === "apply") {
+      if (msg.type === "apply") {
         const resMap: Record<string, DirtyResolution> = {};
         for (const [k, v] of choices) resMap[k] = v;
         const result = applyLibraryUpdate(libraryRoot, seedRoot, resMap);
         panel.dispose();
         vscode.window.showInformationMessage(
-          `Context Kit: updated (applied ${result.applied.length}, replaced ${result.replaced.length}, keep-both ${result.keptBoth.length}, skipped dirty ${result.skippedDirty.length}).`,
+          `Context Kit: updated (applied ${String(result.applied.length)}, replaced ${String(result.replaced.length)}, keep-both ${String(result.keptBoth.length)}, skipped dirty ${String(result.skippedDirty.length)}).`,
         );
         await onDone();
       }
@@ -101,6 +103,10 @@ export function openUpdateLibraryPanel(
     undefined,
     context.subscriptions,
   );
+}
+
+function isDirtyResolution(value: unknown): value is DirtyResolution {
+  return value === "skip" || value === "replace" || value === "keep-both";
 }
 
 function dirtyCard(d: ClassifiedSeedAsset, selected: DirtyResolution): string {

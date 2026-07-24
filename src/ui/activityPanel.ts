@@ -10,10 +10,10 @@ import { escapeHtml, webviewBaseStyles } from "./webviewTheme";
 
 function formatAge(ms: number, now: number): string {
   const sec = Math.max(0, Math.floor((now - ms) / 1000));
-  if (sec < 60) return `${sec}s ago`;
-  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
-  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
-  return `${Math.floor(sec / 86400)}d ago`;
+  if (sec < 60) return `${String(sec)}s ago`;
+  if (sec < 3600) return `${String(Math.floor(sec / 60))}m ago`;
+  if (sec < 86400) return `${String(Math.floor(sec / 3600))}h ago`;
+  return `${String(Math.floor(sec / 86400))}d ago`;
 }
 
 function renderSessions(
@@ -25,7 +25,7 @@ function renderSessions(
   if (!sessions.length) {
     if (onlyActive && hiddenCount > 0) {
       return `<div class="empty">No <strong>active</strong> sessions right now.<br/>
-        <span class="meta">${hiddenCount} inactive hidden — use “Show inactive” to list them.</span></div>`;
+        <span class="meta">${String(hiddenCount)} inactive hidden — use “Show inactive” to list them.</span></div>`;
     }
     return `<div class="empty">No Claude/Grok sessions found under default homes.<br/>
       <span class="meta">Checked ~/.claude/projects and ~/.grok/sessions</span></div>`;
@@ -82,7 +82,7 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
       nowMs: now,
       limit: 80,
     });
-    const fp = sessionsFingerprint(all) + `|oa:${onlyActive}`;
+    const fp = sessionsFingerprint(all) + `|oa:${String(onlyActive)}`;
     if (!force && fp === lastFp) {
       const { visible, hiddenCount } = filterSessionsForDisplay(all, onlyActive);
       panel.webview.postMessage({
@@ -101,7 +101,9 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
     panel.webview.html = buildHtml(visible, now, live, onlyActive, all.length, hiddenCount);
   };
 
-  const debounced = debounce(() => paint(false), 400);
+  const debounced = debounce(() => {
+    paint(false);
+  }, 400);
 
   const startWatch = () => {
     stopWatch();
@@ -140,16 +142,18 @@ export function openActivityMapPanel(context: vscode.ExtensionContext): void {
   startWatch();
 
   panel.webview.onDidReceiveMessage(
-    (msg) => {
-      if (msg?.type === "refresh") paint(true);
-      if (msg?.type === "live") {
-        live = !!msg.value;
+    (raw: unknown) => {
+      if (typeof raw !== "object" || raw === null) return;
+      const msg = raw as Record<string, unknown>;
+      if (msg.type === "refresh") paint(true);
+      if (msg.type === "live") {
+        live = Boolean(msg.value);
         if (live) startWatch();
         else stopWatch();
         paint(true);
       }
-      if (msg?.type === "onlyActive") {
-        onlyActive = !!msg.value;
+      if (msg.type === "onlyActive") {
+        onlyActive = Boolean(msg.value);
         paint(true);
       }
     },
@@ -180,8 +184,8 @@ function buildHtml(
 ): string {
   const meta =
     onlyActive && hiddenCount > 0
-      ? `${sessions.length} active · ${hiddenCount} inactive hidden · ${new Date(now).toLocaleString()}`
-      : `${total} session(s) · ${new Date(now).toLocaleString()}`;
+      ? `${String(sessions.length)} active · ${String(hiddenCount)} inactive hidden · ${new Date(now).toLocaleString()}`
+      : `${String(total)} session(s) · ${new Date(now).toLocaleString()}`;
 
   return `<!DOCTYPE html>
 <html lang="en">

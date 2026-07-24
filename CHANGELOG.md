@@ -10,6 +10,23 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
+## 1.4.0
+
+### Features
+
+- **Orchestrator:** up to **3 slash commands per step** (same terminal, chained with `&&`)
+- **Orchestrator:** **named saved pipelines** — select at top (default _New orchestration_), **Save** / **Update** / **Delete**, stored in extension `globalState`
+
+### Security
+
+- **Launch lines are now single-quoted** (`buildLaunchCommand`) — `$(…)`, backticks and `$VAR` in the args box no longer expand when a step runs
+- **Command names are validated against a slug charset** (`normalizeCommands`) — names come from library filenames on disk and from persisted presets, so a file such as `a$(id).md` can no longer reach the shell
+
+### Tooling
+
+- **Quality gate:** `eslint.config.js` with `typescript-eslint` `strictTypeChecked`; the whole `src/` tree was brought to zero errors
+- **Quality gate:** `check-strict` now measures line coverage over `src/` and enforces `COVERAGE_MIN` (80%) via `scripts/coverage-report.mjs`; currently **87.5%**
+
 ## 1.3.0
 
 ### Features

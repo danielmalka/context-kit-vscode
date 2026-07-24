@@ -70,12 +70,7 @@ export function deployAssetToRuntime(req: DeployRequest): DeployResult {
       continue;
     }
     // Only skills map cleanly into skill roots for claude/grok/agents defaults.
-    if (
-      (target === "claude" || target === "grok" || target === "agents") &&
-      req.kind !== "skill" &&
-      req.kind !== "command" &&
-      req.kind !== "workflow"
-    ) {
+    if (req.kind !== "skill" && req.kind !== "command" && req.kind !== "workflow") {
       skipped.push(`${target} (kind ${req.kind} not supported)`);
       continue;
     }

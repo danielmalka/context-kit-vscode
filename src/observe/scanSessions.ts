@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ActivityProvider, ActivitySession, ActivityStatus } from "./types";
+import type { ActivitySession, ActivityStatus } from "./types";
 
 function mtimeMs(p: string): number {
   try {
@@ -80,12 +80,12 @@ export function scanGrokSessions(sessionsRoot: string, nowMs = Date.now()): Acti
       }
 
       const children: ActivitySession[] = phases.slice(-5).map((p, i) => ({
-        id: `${sid}:phase:${i}`,
-        provider: "grok" as ActivityProvider,
+        id: `${sid}:phase:${String(i)}`,
+        provider: "grok",
         label: p,
         path: sessionPath,
         lastActivityMs: last,
-        status: "unknown" as ActivityStatus,
+        status: "unknown",
       }));
 
       out.push({
@@ -155,7 +155,7 @@ export function scanClaudeSessions(projectsRoot: string, nowMs = Date.now()): Ac
           path: full,
           lastActivityMs: last,
           status: statusFromAge(nowMs - last),
-          detail: children.length ? `${children.length} subagent(s)` : undefined,
+          detail: children.length ? `${String(children.length)} subagent(s)` : undefined,
           children: children.length ? children : undefined,
         });
         continue;

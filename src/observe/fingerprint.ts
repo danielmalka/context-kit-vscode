@@ -5,8 +5,8 @@ export function sessionsFingerprint(sessions: ActivitySession[]): string {
   return sessions
     .map(
       (s) =>
-        `${s.id}|${s.lastActivityMs}|${s.status}|${s.detail ?? ""}|${(s.children ?? [])
-          .map((c) => `${c.id}:${c.lastActivityMs}`)
+        `${s.id}|${String(s.lastActivityMs)}|${s.status}|${s.detail ?? ""}|${(s.children ?? [])
+          .map((c) => `${c.id}:${String(c.lastActivityMs)}`)
           .join(",")}`,
     )
     .join(";");
