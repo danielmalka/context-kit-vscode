@@ -89,6 +89,8 @@ Not part of the mandatory chain — use when useful:
 | **documentator**        | Markdown docs + Mermaid/draw.io diagrams from code truth                          | Ask the agent to act as `documentator`, or `/document` |
 | **security-checker**    | Diff-scoped security review; tech-debt tasks for non-blockers                     | `/security-check` after implement on sensitive work    |
 | **cleaner** (faxineiro) | Dead code, stale docs, leftover samples — report first, delete only when approved | `/clean` at the end of a feature                       |
+| **designer-ux**         | Design direction while planning, visual/UX critique of the built surface          | Ask the agent to act as `designer-ux` on UI work       |
+| **react-reviewer**      | React / PWA / i18n code review of a diff, binary verdict                          | Ask the agent to act as `react-reviewer` on the diff   |
 
 Full inventory of seed content (skills, commands, agents, layout, porting notes): **[docs/context-kit-content.md](docs/context-kit-content.md)**.
 

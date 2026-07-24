@@ -37,6 +37,13 @@
 - [ ] Language testing standards are followed
 - [ ] See `.claude/rules/testing.md`
 
+## Axis 4: Frontend (only if the diff touches a user-facing surface)
+
+- [ ] `designer-ux` ran the design critique vs `DESIGN.md` and verdict is APPROVED (brand fidelity,
+      visual hierarchy, anti-slop pre-flight, accessibility, responsive/theme, motion)
+- [ ] For React/PWA code: `react-reviewer` (`agents/react-reviewer.md`) verdict is APPROVED
+- [ ] No new off-brand token invented outside `DESIGN.md`
+
 ## Review Outcome
 
 - [ ] Zero open BLOCKERs

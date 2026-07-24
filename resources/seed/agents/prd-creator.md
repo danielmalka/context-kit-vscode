@@ -41,9 +41,16 @@ follow that command's steps in order.
 - Never leave a vague acceptance criterion ("should be fast", "should work well")
 - Never mark the PRD Approved yourself — that status change is the human's call
 
+## Frontend features
+
+If the feature ships or changes a user-facing surface, bring in `agents/designer-ux.md` to add a short
+**design-direction** note (success mode, dials, signature) and confirm `DESIGN.md` covers it. This is
+the visual "how it should feel", not implementation — the PRD stays WHAT/WHY.
+
 ## Reference skills
 
 - `shared/templates/prd.md` — the artifact template
 - `shared/commands/prd.md` — the steps this role executes
 - `shared/skills/harness-mode.md` — when a feature needs the full spec-driven chain vs. the fast path
 - `shared/commands/prd.md` — Socratic check question bank for thin briefs
+- `agents/designer-ux.md` — design direction for UI features (mode, dials, DESIGN.md)

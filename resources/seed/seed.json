@@ -1,10 +1,10 @@
 {
-  "seedVersion": "2026.07.22+e4d4cfe",
+  "seedVersion": "1.5.0+2026.07.24.e0e7d6b",
   "source": "context-kit",
-  "generatedAt": "2026-07-22T02:55:15Z",
+  "generatedAt": "2026-07-24T20:30:54Z",
   "counts": {
-    "skills": 28,
+    "skills": 29,
     "commands": 20,
-    "agents": 13
+    "agents": 15
   }
 }

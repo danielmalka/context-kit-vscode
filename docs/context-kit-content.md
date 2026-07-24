@@ -127,6 +127,8 @@ These **do not** replace the core chain. Use them when the situation calls for i
 | **documentator**        | `agents/documentator.md`     | After a feature changes behavior people must learn       | “Act as documentator…” or `/document`           |
 | **security-checker**    | `agents/security-checker.md` | After implement, before merge (auth/PII/money/uploads)   | “Act as security-checker…” or `/security-check` |
 | **cleaner** (faxineiro) | `agents/cleaner.md`          | End of feature — dead code, stale docs, leftover samples | “Act as cleaner, report-only…” or `/clean`      |
+| **designer-ux**         | `agents/designer-ux.md`      | Any feature that ships or changes a user-facing surface  | “Act as designer-ux…” (shape, then critique)    |
+| **react-reviewer**      | `agents/react-reviewer.md`   | Review of a diff touching `.tsx`/`.jsx`, PWA or i18n     | “Act as react-reviewer…” on the diff            |
 
 ### Suggested optional tail
 
@@ -155,6 +157,7 @@ Skills are reusable instruction packs (mode router, testing expectations, patter
 - `harness-mode` — route requests to `/fix` vs full chain
 - `harness-developer` / `harness-tester` / `harness-reviewer` — implementation quality
 - `harness-documentator` — lighter doc skill (the **documentator agent** is the full role for deep doc passes)
+- `frontend-maker` — build UI surfaces by success mode and design dials, against `DESIGN.md`
 - Language skills under `{lang}/skills/` when that pack is applied
 
 Skills install into the library and into `.harness/skills/*/SKILL.md`.
@@ -167,12 +170,17 @@ Skills install into the library and into `.harness/skills/*/SKILL.md`.
 | ------------------------------ | ------------------------------------------------------------ |
 | `shared/checklists/*-gate.md`  | Binary gates (spec, plan, code, review, ADR)                 |
 | `shared/templates/prd.md` etc. | Artifact shapes for features under `.harness/docs/features/` |
+| `shared/templates/DESIGN.md`   | Per-project design constitution — tokens, components, motion |
 
 ---
 
 ## Language packs
 
-Applying harness with `language: typescript|go|php|python|rust` copies that pack’s skills/commands/rules/verifications (Makefile, linters, CI template). Use `language: none` for shared-only harness.
+Applying harness with `language: typescript|go|php|python|rust` copies that pack’s skills/commands/rules/prompts/verifications (Makefile, linters, CI template). Use `language: none` for shared-only harness.
+
+The TypeScript pack also carries `typescript/rules/react-pwa.md` (React / PWA / i18n rules). The
+`go`, `php`, `python` and `typescript` packs each carry a `<lang>-refactor` prompt under
+`{lang}/prompts/`, applied to `.harness/prompts/`.
 
 ---
 
