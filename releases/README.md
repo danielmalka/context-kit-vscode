@@ -8,6 +8,7 @@
 | `context-kit-1.2.0.vsix` | 1.2.0   | + Multi-CLI orchestrator (M4)          |
 | `context-kit-1.3.0.vsix` | 1.3.0   | + Activity map hide inactive default   |
 | `context-kit-1.4.0.vsix` | 1.4.0   | + Orch multi-cmd/step + named presets  |
+| `context-kit-1.5.0.vsix` | 1.5.0   | + Frontend/design seed track           |
 
 Install: Command Palette → **Extensions: Install from VSIX…**
 

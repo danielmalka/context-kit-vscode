@@ -35,6 +35,12 @@ All items must be checked before moving forward.
 - [ ] Acceptance criteria are confirmed testable
 - [ ] No criterion is subjective or unverifiable by code
 
+## Design direction (only if the feature touches a user-facing surface)
+
+- [ ] `designer-ux` set the success mode (Persuade/Operate/Read/Experience) and the three dials
+- [ ] `DESIGN.md` exists and covers the tokens/components this feature needs (any new token added there first)
+- [ ] The PRD/techspec carries a short design-direction note (not implementation detail)
+
 ## Reviewer passes (mandatory)
 
 - [ ] prd-reviewer ran the `improve` skill (recon mode) against the target codebase and verdict is APPROVED

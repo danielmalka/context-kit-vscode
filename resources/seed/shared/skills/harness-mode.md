@@ -21,6 +21,20 @@ Before choosing a spec route, check whether this work needs a recorded decision 
 Gate: `shared/checklists/adr-gate.md`. Feature-local decisions that die with the feature need no
 ADR — they stay as techspec mini-ADRs. Do not gate an ordinary feature on an ADR.
 
+## Frontend check (before routing, for UI work)
+
+If the request ships or changes a **user-facing surface** (a page, screen, component, or visual/UX
+change) → the `designer-ux` agent joins the cycle:
+
+- It **shapes** direction during planning (success mode + dials) and owns `DESIGN.md` — the source of
+  truth for tokens. Missing `DESIGN.md` on an existing project → generate it with `frontend-maker`
+  `document` mode before building.
+- Its **design critique** pass is required at `review-gate` for the diff, alongside the code reviewer
+  (`react-reviewer` for React/PWA).
+
+Ask once at planning only if it's genuinely ambiguous whether the work touches UI. Backend-only work
+does not pull in the designer.
+
 ## Routing
 
 Infer from the request; ask only if genuinely ambiguous.

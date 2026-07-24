@@ -10,14 +10,49 @@ All notable releases are packaged under `releases/context-kit-<version>.vsix`.
 
 Bump `package.json` **before** `npm run package` when keeping a build in `releases/`.
 
-## Unreleased
+## 1.5.0
+
+### Seed content — frontend/design track
+
+The bundled seed moves to `1.5.0+2026.07.24.0f3e761` and now carries the frontend/design
+assets, plus the language refactor prompts that the previous build synced but never shipped.
+
+New assets:
+
+- `shared/skills/frontend-maker.md` — build UI by success mode and design dials instead of a
+  template default
+- `shared/templates/DESIGN.md` — per-project design constitution (tokens, components, motion)
+- `agents/designer-ux.md` — design direction at planning time, visual/UX critique at review time
+- `agents/react-reviewer.md` — React/PWA/i18n code review with a binary verdict
+- `typescript/rules/react-pwa.md` — React / PWA / i18n rules for the TypeScript pack
+
+Extended assets (additive — a frontend/design axis, nothing removed):
+
+- `shared/skills/harness-mode.md` — routes user-facing work through `designer-ux`
+- `agents/prd-creator.md` — asks for a design-direction note on UI features
+- `shared/checklists/review-gate.md` — Axis 4: design critique + React review for UI diffs
+- `shared/checklists/spec-gate.md` — design direction (mode, dials, `DESIGN.md`) before build
+
+Language prompts now present in the seed: `{go,php,python,typescript}/prompts/*-refactor.md`.
+
+### Upgrading an existing install
+
+- The extension offers **Update Library from Package Seed**. Assets you never edited are
+  refreshed automatically; assets you edited are preserved and offered **Skip / Replace /
+  Keep-both** so nothing you wrote is overwritten.
+- Because edited assets are preserved, if you customized any of the four files this release
+  changes — `shared/checklists/review-gate.md`, `shared/checklists/spec-gate.md`,
+  `shared/skills/harness-mode.md` or `agents/prd-creator.md` — your version is kept and the new
+  frontend axis will **not** appear in it until you choose Replace or Keep-both. For you it is
+  opt-in.
 
 ### Seed versioning
 
 `seedVersion` moves to `MAJOR.MINOR.PATCH+YYYY.MM.DD.<shortsha>` — a real ordered version
 instead of a bare date stamp. See
 [docs/context-kit-content.md](docs/context-kit-content.md#seed-version) for the scheme.
-This build changes the mechanism only; the bundled seed content is unchanged.
+Libraries stamped with the older date-only value sort below every semver release, so they see
+this build as an upgrade without any manual step.
 
 ### Fixes
 
@@ -36,13 +71,6 @@ This build changes the mechanism only; the bundled seed content is unchanged.
   stamped short SHA is provenance users rely on; previously the script stamped whatever HEAD
   it found, so a feature-branch commit could ship inside a released seed. `ALLOW_DIRTY_SEED=1`
   overrides for local testing and warns that the build must not be released.
-
-### Planned (not in this build)
-
-The frontend/design seed track — `frontend-maker`, `DESIGN.md`, `designer-ux`,
-`react-reviewer`, `typescript/rules/react-pwa.md` and the `<lang>/prompts/*-refactor.md`
-set — exists upstream in the asset kit but is not bundled here yet. It ships with the
-release that runs the seed sync.
 
 ## 1.4.0
 
