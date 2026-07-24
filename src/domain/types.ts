@@ -67,4 +67,10 @@ export interface LibraryManifest {
   seedVersion: string;
   installedAt: string;
   lastUpdatedAt?: string;
+  /**
+   * Highest package seed version the user has seen and acted on (applied, replaced, or
+   * deliberately skipped). Drives the update prompt so a skipped dirty asset stops the nag
+   * until a newer package arrives. Optional: legacy manifests fall back to `seedVersion`.
+   */
+  acknowledgedSeedVersion?: string;
 }

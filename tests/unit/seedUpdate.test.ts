@@ -15,6 +15,7 @@ import {
   mapSeedFileToLibraryRel,
   readSeedVersion,
   readLibrarySeedVersion,
+  readAcknowledgedSeedVersion,
 } from "../../src/library/seedUpdate";
 import { contentHash } from "../../src/domain/hash";
 import { metaRelativePath } from "../../src/domain/paths";
@@ -35,20 +36,25 @@ describe("seedUpdate", () => {
   let tmp: string;
   let seedV1: string;
   let seedV2: string;
+  let seedV3: string;
   let lib: string;
 
   const skillV1 = "---\nname: demo\ndescription: v1\n---\n\n# Demo v1\n";
   const skillV2 = "---\nname: demo\ndescription: v2\n---\n\n# Demo v2\n";
+  const skillV3 = "---\nname: demo\ndescription: v3\n---\n\n# Demo v3\n";
   const cmdV1 = "# fix\n\nv1 body\n";
   const cmdV2 = "# fix\n\nv2 body\n";
+  const cmdV3 = "# fix\n\nv3 body\n";
 
   before(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ck-seed-upd-"));
     seedV1 = path.join(tmp, "seed-v1");
     seedV2 = path.join(tmp, "seed-v2");
+    seedV3 = path.join(tmp, "seed-v3");
     lib = path.join(tmp, "lib");
     writeSeed(seedV1, "1.0.0", skillV1, cmdV1);
     writeSeed(seedV2, "2.0.0", skillV2, cmdV2);
+    writeSeed(seedV3, "3.0.0", skillV3, cmdV3);
   });
 
   after(() => {
@@ -240,6 +246,67 @@ describe("seedUpdate", () => {
     assert.deepEqual(resolved.skippedDirty, []);
     assert.equal(resolved.librarySeedVersion, "2.0.0");
     assert.equal(planLibraryUpdate(lib, seedV2).needsUpdate, false);
+  });
+
+  it("stops nagging after a dirty asset is permanently skipped (regression)", () => {
+    // Install at 1.0.0, then update to 2.0.0 with the skill edited and then Skipped.
+    const skillPath = path.join(lib, "skills", "demo", "SKILL.md");
+    const edited = "---\nname: demo\ndescription: edited\n---\n\n# Edited keep\n";
+    fs.writeFileSync(skillPath, edited);
+
+    const r = applyLibraryUpdate(lib, seedV2, { demo: "skip" });
+    assert.deepEqual(r.skippedDirty, ["skills/demo/SKILL.md"]);
+    // seedVersion stays pinned (a dirty asset was not applied) but the package is acknowledged.
+    assert.equal(readLibrarySeedVersion(lib), "1.0.0");
+    assert.equal(readAcknowledgedSeedVersion(lib), "2.0.0");
+
+    // The user made a permanent choice — a second plan must NOT ask again.
+    const again = planLibraryUpdate(lib, seedV2);
+    assert.equal(again.needsUpdate, false, "a skipped dirty asset must clear the update prompt");
+    // The edit is left untouched.
+    assert.equal(fs.readFileSync(skillPath, "utf8"), edited);
+  });
+
+  it("a newer package after an acknowledged skip nags again with the still-dirty asset", () => {
+    const skillPath = path.join(lib, "skills", "demo", "SKILL.md");
+    const edited = "---\nname: demo\ndescription: edited\n---\n\n# Edited keep\n";
+    fs.writeFileSync(skillPath, edited);
+    applyLibraryUpdate(lib, seedV2, { demo: "skip" });
+    assert.equal(readAcknowledgedSeedVersion(lib), "2.0.0");
+    assert.equal(planLibraryUpdate(lib, seedV2).needsUpdate, false);
+
+    // Package advances to 3.0.0: the acknowledgment is stale, so prompt again...
+    const plan = planLibraryUpdate(lib, seedV3);
+    assert.equal(plan.needsUpdate, true, "a newer package seed reopens the prompt");
+    // ...and the asset the user edited is offered for reconsideration.
+    assert.ok(
+      plan.dirty.some((d) => d.name === "demo"),
+      "still-dirty asset must reappear for the new version",
+    );
+  });
+
+  it("repairs a deleted seed asset at an equal acknowledged version", () => {
+    // Fully apply 2.0.0 (clean) so acknowledged == package == 2.0.0.
+    applyLibraryUpdate(lib, seedV2);
+    assert.equal(readAcknowledgedSeedVersion(lib), "2.0.0");
+    const skillPath = path.join(lib, "skills", "demo", "SKILL.md");
+    fs.rmSync(skillPath);
+
+    const plan = planLibraryUpdate(lib, seedV2);
+    assert.ok(
+      plan.missing.some((m) => m.name === "demo"),
+      "deleted asset is classified missing even at an equal version",
+    );
+    assert.equal(plan.needsUpdate, true);
+    applyLibraryUpdate(lib, seedV2, {});
+    assert.equal(contentHash(fs.readFileSync(skillPath, "utf8")), contentHash(skillV2));
+  });
+
+  it("does not nag when the acknowledged version is newer than the package (downgrade)", () => {
+    applyLibraryUpdate(lib, seedV2);
+    assert.equal(readAcknowledgedSeedVersion(lib), "2.0.0");
+    // Shipping an older seed than acknowledged must never look like an update.
+    assert.equal(planLibraryUpdate(lib, seedV1).needsUpdate, false);
   });
 });
 
